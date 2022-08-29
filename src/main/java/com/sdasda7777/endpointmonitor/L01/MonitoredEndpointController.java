@@ -5,15 +5,17 @@ import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.L02.MonitorUserService;
 import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
-import com.sdasda7777.endpointmonitor.L03.MonitorUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/v1/monitoredEndpoints")
@@ -32,10 +34,10 @@ public class MonitoredEndpointController {
 
         MonitorUser u0 = new MonitorUser();
         u0.setAccessToken("user0_secret_access_token");
-        u0 = monitorUserService.createUser(u0);
+        u0 = this.monitorUserService.createUser(u0);
         MonitorUser u1 = new MonitorUser();
         u1.setAccessToken("user1_secret_access_token");
-        u1 = monitorUserService.createUser(u1);
+        u1 = this.monitorUserService.createUser(u1);
 
 
         MonitoredEndpoint me0 = new MonitoredEndpoint();
@@ -46,7 +48,7 @@ public class MonitoredEndpointController {
         me0.setCreationDate(LocalDateTime.now());
         me0.setLastCheckDate(LocalDateTime.now());
         me0.setOwner(u0);
-        monitoredEndpointService.createMonitoredEndpoint(me0);
+        this.monitoredEndpointService.createMonitoredEndpoint(me0);
 
         MonitoredEndpoint me1 = new MonitoredEndpoint();
         me1.setId(12l);
@@ -56,12 +58,26 @@ public class MonitoredEndpointController {
         me1.setLastCheckDate(LocalDateTime.now());
         me1.setMonitoringInterval(5);
         me1.setOwner(u1);
-        monitoredEndpointService.createMonitoredEndpoint(me1);
+        this.monitoredEndpointService.createMonitoredEndpoint(me1);
 
     }
 
     @GetMapping("")
-    public Collection<MonitoredEndpointDTO> getMonitoredEndpoints(){
-        return MonitoredEndpointDTO.convertMany(monitoredEndpointService.getAll());
+    public Collection<MonitoredEndpointDTO> getMonitoredEndpoints(
+            @RequestHeader(value = "Authorization", required = false) String token
+    ){
+        if(token == null){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                                                "Authorization token must be provided");
+        }
+        Optional<MonitorUser> userOptional = monitorUserService.getUniqueUserByToken(token);
+        if(userOptional.isEmpty()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                                "Token did not match expected number of users");
+        }
+
+        return MonitoredEndpointDTO.convertMany(
+                monitoredEndpointService.getEndpointsByUser(
+                        userOptional.get()));
     }
 }

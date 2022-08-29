@@ -1,5 +1,6 @@
 package com.sdasda7777.endpointmonitor.L02;
 
+import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,5 +48,13 @@ public class MonitoredEndpointService {
 
     public Collection<MonitoredEndpoint> getRequiringUpdate() {
         return monitoredEndpointRepository.getRequiringUpdate(LocalDateTime.now());
+    }
+
+    public Collection<MonitoredEndpoint> getEndpointsByUser(MonitorUser monitorUser) {
+        return monitoredEndpointRepository.getEndpointsByUser(monitorUser);
+    }
+
+    public Optional<MonitoredEndpoint> getEndpointById(Long monitoredEndpointId) {
+        return monitoredEndpointRepository.findById(monitoredEndpointId);
     }
 }

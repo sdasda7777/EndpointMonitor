@@ -17,6 +17,10 @@ public class MonitorUserService {
     public Collection<MonitorUser> getAll(){
         return monitorUserRepository.findAll();
     }
+    public Optional<MonitorUser> getUniqueUserByToken(String token){
+        Collection<MonitorUser> users = monitorUserRepository.getByToken(token);
+        return (users.size() == 1 ? users.stream().findFirst() : Optional.empty());
+    }
 
     public MonitorUser createUser(MonitorUser monitorUser){
         return monitorUserRepository.save(monitorUser);
