@@ -2,6 +2,8 @@ package com.sdasda7777.endpointmonitor.L02.Entities;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Entity
 @Table(name = "monitoredEndpoints")
@@ -22,6 +24,9 @@ public class MonitoredEndpoint {
     @JoinColumn(name = "owner_id", nullable = false)
     private MonitorUser owner;
 
+    @OneToMany(mappedBy = "monitoredEndpoint")
+    public Collection<MonitoringResult> monitoringResults;
+
     public MonitoredEndpoint(){
         this.name = null;
         this.url = null;
@@ -29,6 +34,7 @@ public class MonitoredEndpoint {
         this.lastCheckDate = null;
         this.monitoringInterval = null;
         this.owner = null;
+        this.monitoringResults = new ArrayList<>();
     }
 
     public Long getId() {
@@ -85,5 +91,13 @@ public class MonitoredEndpoint {
 
     public void setOwner(MonitorUser owner) {
         this.owner = owner;
+    }
+
+    public Collection<MonitoringResult> getMonitoringResults() {
+        return monitoringResults;
+    }
+
+    public void setMonitoringResults(Collection<MonitoringResult> monitoringResults) {
+        this.monitoringResults = monitoringResults;
     }
 }

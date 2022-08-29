@@ -15,18 +15,14 @@ public class MonitoredEndpointDTO {
     private Integer monitoringInterval;
     private Long ownerId;
 
-    public MonitoredEndpointDTO(Long id, String name, String url,
-                                LocalDateTime creationDate,
-                                LocalDateTime lastCheckDate,
-                                Integer monitoringInterval,
-                                Long ownerId) {
-        this.id = id;
-        this.name = name;
-        this.url = url;
-        this.creationDate = creationDate;
-        this.lastCheckDate = lastCheckDate;
-        this.monitoringInterval = monitoringInterval;
-        this.ownerId = ownerId;
+    public MonitoredEndpointDTO(MonitoredEndpoint endpoint) {
+        this.id = endpoint.getId();
+        this.name = endpoint.getName();
+        this.url = endpoint.getUrl();
+        this.creationDate = endpoint.getCreationDate();
+        this.lastCheckDate = endpoint.getLastCheckDate();
+        this.monitoringInterval = endpoint.getMonitoringInterval();
+        this.ownerId = endpoint.getOwner().getId();
     }
 
 
@@ -60,15 +56,7 @@ public class MonitoredEndpointDTO {
 
 
     public static MonitoredEndpointDTO convertOne(MonitoredEndpoint endpoint){
-        return new MonitoredEndpointDTO(
-            endpoint.getId(),
-            endpoint.getName(),
-            endpoint.getUrl(),
-            endpoint.getCreationDate(),
-            endpoint.getLastCheckDate(),
-            endpoint.getMonitoringInterval(),
-            endpoint.getOwner().getId()
-        );
+        return new MonitoredEndpointDTO(endpoint);
     }
 
     public static Collection<MonitoredEndpointDTO> convertMany(Collection<MonitoredEndpoint> endpoints){

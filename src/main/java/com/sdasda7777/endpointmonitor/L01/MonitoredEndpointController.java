@@ -35,7 +35,7 @@ public class MonitoredEndpointController {
         MonitorUser u1 = new MonitorUser();
         u1 = monitorUserService.createUser(u1);
 
-        
+
         MonitoredEndpoint me0 = new MonitoredEndpoint();
         me0.setId(11l);
         me0.setName("Test endpoint");
