@@ -20,15 +20,6 @@ public class MonitoredEndpointController {
 
     @GetMapping("")
     public Collection<MonitoredEndpointDTO> getMonitoredEndpoints(){
-        ArrayList<MonitoredEndpointDTO> ret = new ArrayList<>();
-        ret.add(new MonitoredEndpointDTO(11l, "Test endpoint", "localhost:8080/asdf",
-                                            LocalDateTime.now(), LocalDateTime.now(),
-                                            10, 22l));
-        ret.add(new MonitoredEndpointDTO(12l, "Test endpoint 2", "localhost:8080/asdfasdf",
-                                            LocalDateTime.now(), LocalDateTime.now(),
-                                            5, 23l));
-        return ret;
-
-        //return MonitoredEndpointDTO.convertMany(monitoredEndpointService.getAll());
+        return MonitoredEndpointDTO.convertMany(monitoredEndpointService.getAll());
     }
 }

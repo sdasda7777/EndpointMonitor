@@ -58,14 +58,14 @@ public class MonitoredEndpointDTO {
         return ownerId;
     }
 
-    /*
+
     public static MonitoredEndpointDTO convertOne(MonitoredEndpoint endpoint){
         return new MonitoredEndpointDTO(
             endpoint.getId(),
             endpoint.getName(),
             endpoint.getUrl(),
             endpoint.getCreationDate(),
-            endpoint.getlastChechDate(),
+            endpoint.getLastCheckDate(),
             endpoint.getMonitoringInterval(),
             endpoint.getOwner().getId()
         );
@@ -76,5 +76,4 @@ public class MonitoredEndpointDTO {
         endpoints.forEach(i -> dtos.add(MonitoredEndpointDTO.convertOne(i)));
         return dtos;
     }
-    */
 }
