@@ -1,6 +1,7 @@
 package com.sdasda7777.endpointmonitor.L02.Entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Entity
@@ -19,7 +20,10 @@ public class MonitorUser {
     public Collection<MonitoredEndpoint> monitoredEndpoints;
 
     public MonitorUser(){
-
+        this.username = null;
+        this.email = null;
+        this.accessToken = null;
+        this.monitoredEndpoints = new ArrayList<>();
     }
 
     public Long getId() {

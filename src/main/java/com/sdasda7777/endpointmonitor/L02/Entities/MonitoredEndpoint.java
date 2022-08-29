@@ -23,7 +23,12 @@ public class MonitoredEndpoint {
     private MonitorUser owner;
 
     public MonitoredEndpoint(){
-
+        this.name = null;
+        this.url = null;
+        this.creationDate = null;
+        this.lastCheckDate = null;
+        this.monitoringInterval = null;
+        this.owner = null;
     }
 
     public Long getId() {
