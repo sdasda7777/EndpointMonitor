@@ -18,6 +18,7 @@ public class MonitoredEndpoint {
     private String url;
     private LocalDateTime creationDate;
     private LocalDateTime lastCheckDate;
+    private LocalDateTime nextCheckDate;
     private Integer monitoringInterval;
 
     @ManyToOne(optional = false)
@@ -27,11 +28,13 @@ public class MonitoredEndpoint {
     @OneToMany(mappedBy = "monitoredEndpoint")
     public Collection<MonitoringResult> monitoringResults;
 
+
     public MonitoredEndpoint(){
         this.name = null;
         this.url = null;
         this.creationDate = null;
         this.lastCheckDate = null;
+        this.nextCheckDate = null;
         this.monitoringInterval = null;
         this.owner = null;
         this.monitoringResults = new ArrayList<>();
@@ -75,6 +78,13 @@ public class MonitoredEndpoint {
 
     public void setLastCheckDate(LocalDateTime lastCheckDate) {
         this.lastCheckDate = lastCheckDate;
+        if(monitoringInterval != null){
+            nextCheckDate = lastCheckDate.plusSeconds(monitoringInterval);
+        }
+    }
+
+    public LocalDateTime getNextCheckDate() {
+        return nextCheckDate;
     }
 
     public Integer getMonitoringInterval() {
@@ -83,6 +93,9 @@ public class MonitoredEndpoint {
 
     public void setMonitoringInterval(Integer monitoringInterval) {
         this.monitoringInterval = monitoringInterval;
+        if(lastCheckDate != null){
+            nextCheckDate = lastCheckDate.plusSeconds(monitoringInterval);
+        }
     }
 
     public MonitorUser getOwner() {

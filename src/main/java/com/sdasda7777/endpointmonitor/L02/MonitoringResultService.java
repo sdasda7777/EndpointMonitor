@@ -25,4 +25,9 @@ public class MonitoringResultService {
     public Collection<MonitoringResult> getAllForEndpoint(Long monitoredEndpointId) {
         return monitoringResultRepository.getAllForEndpoint(monitoredEndpointId);
     }
+
+
+    public MonitoringResult createMonitoringResult(MonitoringResult monitoringResult){
+        return monitoringResultRepository.save(monitoringResult);
+    }
 }

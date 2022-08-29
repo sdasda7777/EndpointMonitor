@@ -20,8 +20,8 @@ public interface MonitoringResultRepository extends JpaRepository<MonitoringResu
     List<MonitoringResult> findAll();
     Optional<MonitoringResult> findById(Long id);
 
-    @Query("SELECT r FROM MonitoringResult r WHERE r.monitoredEndpoint.id = :endpointId")
-    @OrderBy("checkDate DESC")
+    @Query("SELECT r FROM MonitoringResult r WHERE r.monitoredEndpoint.id = :endpointId" +
+            " ORDER BY r.checkDate DESC")
     ArrayList<MonitoringResult> getAllForEndpoint(@Param("endpointId") Long monitoredEndpointId);
 
     void deleteById(Long id);

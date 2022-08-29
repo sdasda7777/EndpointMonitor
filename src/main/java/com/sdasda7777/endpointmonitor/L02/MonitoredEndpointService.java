@@ -5,6 +5,7 @@ import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -42,5 +43,9 @@ public class MonitoredEndpointService {
             current.setOwner(monitoredEndpoint.getOwner());
 
         return monitoredEndpointRepository.save(current);
+    }
+
+    public Collection<MonitoredEndpoint> getRequiringUpdate() {
+        return monitoredEndpointRepository.getRequiringUpdate(LocalDateTime.now());
     }
 }

@@ -31,25 +31,27 @@ public class MonitoredEndpointController {
         this.monitorUserService = monitorUserService;
 
         MonitorUser u0 = new MonitorUser();
+        u0.setAccessToken("user0_secret_access_token");
         u0 = monitorUserService.createUser(u0);
         MonitorUser u1 = new MonitorUser();
+        u1.setAccessToken("user1_secret_access_token");
         u1 = monitorUserService.createUser(u1);
 
 
         MonitoredEndpoint me0 = new MonitoredEndpoint();
         me0.setId(11l);
-        me0.setName("Test endpoint");
-        me0.setUrl("localhost:8080/asdf");
+        me0.setName("Test endpoint 1 - should succeed");
+        me0.setUrl("https://www.google.com");
+        me0.setMonitoringInterval(7);
         me0.setCreationDate(LocalDateTime.now());
         me0.setLastCheckDate(LocalDateTime.now());
-        me0.setMonitoringInterval(10);
         me0.setOwner(u0);
         monitoredEndpointService.createMonitoredEndpoint(me0);
 
         MonitoredEndpoint me1 = new MonitoredEndpoint();
         me1.setId(12l);
-        me1.setName("Test endpoint 2");
-        me1.setUrl("localhost:8080/asdfasdf");
+        me1.setName("Test endpoint 2 - should fail");
+        me1.setUrl("https://www.non-existent-page.com");
         me1.setCreationDate(LocalDateTime.now());
         me1.setLastCheckDate(LocalDateTime.now());
         me1.setMonitoringInterval(5);

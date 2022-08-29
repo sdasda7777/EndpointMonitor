@@ -12,6 +12,7 @@ public class MonitoringResult {
 
     LocalDateTime checkDate;
     Integer resultStatusCode;
+    @Column(columnDefinition="TEXT")
     String resultPayload;
 
     @ManyToOne(optional = false)
