@@ -19,35 +19,9 @@ public class MonitoredEndpointController {
     @Autowired
     MonitoredEndpointService monitoredEndpointService;
 
-    //TODO remove
-    @Autowired
-    MonitorUserService monitorUserService;
 
-    public MonitoredEndpointController(MonitoredEndpointService monitoredEndpointService,
-                                       MonitorUserService monitorUserService){
+    public MonitoredEndpointController(MonitoredEndpointService monitoredEndpointService){
         this.monitoredEndpointService = monitoredEndpointService;
-        this.monitorUserService = monitorUserService;
-
-        MonitorUser u0 = new MonitorUser();
-        u0.setAccessToken("user0_secret_access_token");
-        u0 = this.monitorUserService.createUser(u0);
-        MonitorUser u1 = new MonitorUser();
-        u1.setAccessToken("user1_secret_access_token");
-        u1 = this.monitorUserService.createUser(u1);
-
-
-        MonitoredEndpoint me0 = new MonitoredEndpoint();
-        me0.setName("Test endpoint 1 - should be reachable");
-        me0.setUrl("https://www.google.com");
-        me0.setMonitoringInterval(7);
-        this.monitoredEndpointService.createMonitoredEndpoint("user0_secret_access_token", me0);
-
-        MonitoredEndpoint me1 = new MonitoredEndpoint();
-        me1.setName("Test endpoint 2 - should be unreachable");
-        me1.setUrl("https://www.non-existent-page.com");
-        me1.setMonitoringInterval(5);
-        this.monitoredEndpointService.createMonitoredEndpoint("user1_secret_access_token", me1);
-
     }
 
     @GetMapping("")

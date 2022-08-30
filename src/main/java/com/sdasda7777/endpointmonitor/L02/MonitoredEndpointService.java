@@ -20,6 +20,11 @@ public class MonitoredEndpointService {
     @Autowired
     MonitorUserService monitorUserService;
 
+    public MonitoredEndpointService(MonitoredEndpointRepository monitoredEndpointRepository,
+                                    MonitorUserService monitorUserService){
+        this.monitoredEndpointRepository = monitoredEndpointRepository;
+        this.monitorUserService = monitorUserService;
+    }
 
     public MonitoredEndpoint createMonitoredEndpoint(String token, MonitoredEndpoint monitoredEndpoint){
         MonitorUser monitorUser = checkUserIsAuthorized(token);
@@ -99,5 +104,9 @@ public class MonitoredEndpointService {
         if(userOptional.isEmpty())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token did not match expected number of users");
         return userOptional.get();
+    }
+
+    public void updateEndpointLastCheck(MonitoredEndpoint endpoint, LocalDateTime checkDate) {
+        monitoredEndpointRepository.updateEndpointLastCheck(endpoint, checkDate);
     }
 }

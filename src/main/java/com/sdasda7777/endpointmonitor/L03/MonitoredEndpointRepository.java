@@ -26,4 +26,8 @@ public interface MonitoredEndpointRepository extends JpaRepository<MonitoredEndp
     Collection<MonitoredEndpoint> getEndpointsByUser(@Param("monitorUser") MonitorUser monitorUser);
 
     void deleteById(Long id);
+
+    @Query("UPDATE MonitoredEndpoint me SET me.lastCheckDate = :checkDate WHERE me = :endpoint")
+    void updateEndpointLastCheck(@Param("endpoint") MonitoredEndpoint endpoint,
+                                 @Param("endpoint") LocalDateTime checkDate);
 }

@@ -61,12 +61,12 @@ public class MonitoringService {
     public void scheduleFixedDelayTask() {
         Collection<MonitoredEndpoint> needUpdating = monitoredEndpointService.getRequiringUpdate();
 
+        //TODO multithreading
         for(MonitoredEndpoint endpoint : needUpdating){
             MonitoringResult status = checkStatus(endpoint.getUrl());
             status.setMonitoredEndpoint(endpoint);
             monitoringResultService.createMonitoringResult(status);
-            endpoint.setLastCheckDate(status.getCheckDate());
-            monitoredEndpointService.updateMonitoredEndpoint(endpoint);
+            monitoredEndpointService.updateEndpointLastCheck(endpoint, status.getCheckDate());
         }
     }
 }

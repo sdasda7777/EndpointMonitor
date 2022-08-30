@@ -14,6 +14,10 @@ public class MonitorUserService {
     @Autowired
     MonitorUserRepository monitorUserRepository;
 
+    public MonitorUserService(MonitorUserRepository monitorUserRepository){
+        this.monitorUserRepository = monitorUserRepository;
+    }
+
     public Optional<MonitorUser> getUserById(Long id){
         return monitorUserRepository.findById(id);
     }
