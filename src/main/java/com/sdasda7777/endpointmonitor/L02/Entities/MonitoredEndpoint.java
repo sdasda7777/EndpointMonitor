@@ -1,5 +1,7 @@
 package com.sdasda7777.endpointmonitor.L02.Entities;
 
+import org.apache.commons.validator.routines.UrlValidator;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,7 +27,7 @@ public class MonitoredEndpoint {
     @JoinColumn(name = "owner_id", nullable = false)
     private MonitorUser owner;
 
-    @OneToMany(mappedBy = "monitoredEndpoint")
+    @OneToMany(mappedBy = "monitoredEndpoint", cascade = CascadeType.ALL)
     public Collection<MonitoringResult> monitoringResults;
 
 
@@ -112,5 +114,13 @@ public class MonitoredEndpoint {
 
     public void setMonitoringResults(Collection<MonitoringResult> monitoringResults) {
         this.monitoringResults = monitoringResults;
+    }
+
+    public boolean validOrValidatableUrl() {
+        UrlValidator validator = new UrlValidator();
+        if (validator.isValid(url))
+            return true;
+        url = "https://" + url;
+        return validator.isValid(url);
     }
 }

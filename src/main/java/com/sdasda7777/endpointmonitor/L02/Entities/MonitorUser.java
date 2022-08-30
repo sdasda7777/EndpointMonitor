@@ -16,7 +16,7 @@ public class MonitorUser {
     String email;
     String accessToken;
 
-    @OneToMany(mappedBy = "owner")
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     public Collection<MonitoredEndpoint> monitoredEndpoints;
 
     public MonitorUser(){

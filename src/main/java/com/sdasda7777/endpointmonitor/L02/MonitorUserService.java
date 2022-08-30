@@ -14,9 +14,10 @@ public class MonitorUserService {
     @Autowired
     MonitorUserRepository monitorUserRepository;
 
-    public Collection<MonitorUser> getAll(){
-        return monitorUserRepository.findAll();
+    public Optional<MonitorUser> getUserById(Long id){
+        return monitorUserRepository.findById(id);
     }
+
     public Optional<MonitorUser> getUniqueUserByToken(String token){
         Collection<MonitorUser> users = monitorUserRepository.getByToken(token);
         return (users.size() == 1 ? users.stream().findFirst() : Optional.empty());
