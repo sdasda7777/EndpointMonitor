@@ -19,6 +19,7 @@ public interface MonitorUserRepository extends JpaRepository<MonitorUser, Long> 
 
     void deleteById(Long id);
 
-    @Query("SELECT mu FROM MonitorUser mu WHERE mu.accessToken = :token")
-    Collection<MonitorUser> getByToken(@Param("token") String token);
+    @Query("SELECT mu FROM MonitorUser mu WHERE mu.keycloakId = :id" +
+            " ORDER BY mu.id")
+    Collection<MonitorUser> findByKeycloakId(@Param("id") String id);
 }

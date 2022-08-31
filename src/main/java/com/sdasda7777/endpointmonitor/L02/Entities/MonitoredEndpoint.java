@@ -17,6 +17,8 @@ public class MonitoredEndpoint {
 
     private String name;
 
+
+    @Column(columnDefinition="TEXT")
     private String url;
     private LocalDateTime creationDate;
     private LocalDateTime lastCheckDate;
@@ -38,6 +40,19 @@ public class MonitoredEndpoint {
         this.lastCheckDate = null;
         this.nextCheckDate = null;
         this.monitoringInterval = null;
+        this.owner = null;
+        this.monitoringResults = new ArrayList<>();
+    }
+
+    public MonitoredEndpoint(String name, String url,
+                             LocalDateTime creationDate, LocalDateTime lastCheckDate,
+                             Integer monitoringInterval){
+        this.name = name;
+        this.url = url;
+        this.creationDate = creationDate;
+        this.lastCheckDate = lastCheckDate;
+        setMonitoringInterval(monitoringInterval);
+
         this.owner = null;
         this.monitoringResults = new ArrayList<>();
     }

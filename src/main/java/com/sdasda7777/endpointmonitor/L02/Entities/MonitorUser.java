@@ -12,17 +12,13 @@ public class MonitorUser {
     @GeneratedValue
     public Long id;
 
-    String username;
-    String email;
-    String accessToken;
+    String keycloakId;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     public Collection<MonitoredEndpoint> monitoredEndpoints;
 
     public MonitorUser(){
-        this.username = null;
-        this.email = null;
-        this.accessToken = null;
+        this.keycloakId = null;
         this.monitoredEndpoints = new ArrayList<>();
     }
 
@@ -34,28 +30,12 @@ public class MonitorUser {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getKeycloakId() {
+        return keycloakId;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public void setKeycloakId(String username) {
+        this.keycloakId = username;
     }
 
     public Collection<MonitoredEndpoint> getMonitoredEndpoints() {

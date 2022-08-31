@@ -84,7 +84,7 @@ public class MonitoringService {
     @Scheduled(fixedDelay = 1000)
     public void scheduleFixedDelayTask() {
         Collection<MonitoredEndpoint> needUpdating = monitoredEndpointService.getRequiringUpdate();
-        
+
         for(MonitoredEndpoint endpoint : needUpdating){
             executor.execute(new EndpointCheckWorkerThread(endpoint));
         }

@@ -19,11 +19,13 @@ public interface MonitoredEndpointRepository extends JpaRepository<MonitoredEndp
     List<MonitoredEndpoint> findAll();
     Optional<MonitoredEndpoint> findById(Long id);
 
-    @Query("SELECT me FROM MonitoredEndpoint me WHERE me.nextCheckDate <= :now")
-    List<MonitoredEndpoint> getRequiringUpdate(@Param("now") LocalDateTime now);
+    @Query("SELECT me FROM MonitoredEndpoint me WHERE me.owner.keycloakId = :id"
+            + " ORDER BY me.id ASC")
+    Collection<MonitoredEndpoint> getEndpointsByKeycloakId(@Param("id") String keycloakId);
 
-    @Query("SELECT me FROM MonitoredEndpoint me WHERE me.owner = :monitorUser")
-    Collection<MonitoredEndpoint> getEndpointsByUser(@Param("monitorUser") MonitorUser monitorUser);
+    @Query("SELECT me FROM MonitoredEndpoint me WHERE me.nextCheckDate <= CURRENT_TIMESTAMP" +
+            " ORDER BY me.id ASC")
+    List<MonitoredEndpoint> getRequiringUpdate();
 
     void deleteById(Long id);
 

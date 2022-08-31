@@ -26,8 +26,21 @@ public class MonitoredEndpointService {
         this.monitorUserService = monitorUserService;
     }
 
-    public MonitoredEndpoint createMonitoredEndpoint(String token, MonitoredEndpoint monitoredEndpoint){
-        MonitorUser monitorUser = checkUserIsAuthorized(token);
+    public Collection<MonitoredEndpoint> getRequiringUpdate() {
+        return monitoredEndpointRepository.getRequiringUpdate();
+    }
+
+    public Optional<MonitoredEndpoint> getEndpointById(Long monitoredEndpointId) {
+        return monitoredEndpointRepository.findById(monitoredEndpointId);
+    }
+
+    public Collection<MonitoredEndpoint> getMonitoredEndpointsByKeycloakId(String keycloakId) {
+        return monitoredEndpointRepository.getEndpointsByKeycloakId(keycloakId);
+    }
+
+    public MonitoredEndpoint createMonitoredEndpoint(String keycloakId,
+                                                     MonitoredEndpoint monitoredEndpoint){
+        MonitorUser monitorUser = getOrCreateUser(keycloakId);
 
         monitoredEndpoint.setOwner(monitorUser);
         monitoredEndpoint.setCreationDate(LocalDateTime.now());
@@ -36,13 +49,16 @@ public class MonitoredEndpointService {
         return monitoredEndpointRepository.save(monitoredEndpoint);
     }
 
-    public MonitoredEndpoint updateMonitoredEndpoint(String token, Long monitoredEndpointId, MonitoredEndpoint newEndpoint){
-        MonitorUser monitorUser = checkUserIsAuthorized(token);
-
+    public MonitoredEndpoint updateMonitoredEndpoint(String keycloakId, Long monitoredEndpointId, MonitoredEndpoint newEndpoint){
         Optional<MonitoredEndpoint> currentOptional = monitoredEndpointRepository.findById(monitoredEndpointId);
         if(currentOptional.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Endpoint with given Id does not exist");
-        if(monitorUser.getId() != currentOptional.get().getOwner().getId())
+
+        Optional<MonitorUser> monitorUser = monitorUserService.getUserByKeycloakId(keycloakId);
+        if(monitorUser.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with given Id does not exist");
+
+        if(monitorUser.get().getId() != currentOptional.get().getOwner().getId())
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not own specified endpoint");
 
         MonitoredEndpoint currentEndpoint = currentOptional.get();
@@ -52,44 +68,27 @@ public class MonitoredEndpointService {
             currentEndpoint.setUrl(newEndpoint.getUrl());
         if(newEndpoint.getMonitoringInterval() != null)
             currentEndpoint.setMonitoringInterval(newEndpoint.getMonitoringInterval());
-        if(newEndpoint.getOwner() != null){
-            if(newEndpoint.getOwner().getId() == null)
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User Id must be specified");
-
-            Optional<MonitorUser> newUser = monitorUserService.getUserById(newEndpoint.getOwner().getId());
-
-            if(newUser.isEmpty())
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User with given Id does not exist");
-
-            currentEndpoint.setOwner(newEndpoint.getOwner());
-        }
 
         return monitoredEndpointRepository.save(currentEndpoint);
     }
 
-    public Collection<MonitoredEndpoint> getRequiringUpdate() {
-        return monitoredEndpointRepository.getRequiringUpdate(LocalDateTime.now());
+    public void updateEndpointLastCheck(MonitoredEndpoint endpoint, LocalDateTime checkDate) {
+        monitoredEndpointRepository.updateEndpointLastCheck(endpoint, checkDate);
     }
 
-    public Optional<MonitoredEndpoint> getEndpointById(Long monitoredEndpointId) {
-        return monitoredEndpointRepository.findById(monitoredEndpointId);
-    }
-
-    public Collection<MonitoredEndpoint> getMonitoredEndpointsByToken(String token) {
-        MonitorUser monitorUser = checkUserIsAuthorized(token);
-        return monitoredEndpointRepository.getEndpointsByUser(monitorUser);
-    }
-
-
-
-    public MonitoredEndpoint deleteEndpoint(String token, Long monitoredEndpointId) {
-        MonitorUser monitorUser = checkUserIsAuthorized(token);
-
+    public MonitoredEndpoint deleteEndpoint(String keycloakId, Long monitoredEndpointId) {
         Optional<MonitoredEndpoint> monitoredEndpoint = getEndpointById(monitoredEndpointId);
 
+        //TODO move ResponseStatusException to respective Controller
         if(monitoredEndpoint.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Endpoint with given Id does not exist");
-        if(monitorUser.getId() != monitoredEndpoint.get().getOwner().getId())
+
+        Optional<MonitorUser> monitorUser = monitorUserService.getUserByKeycloakId(keycloakId);
+
+        if(monitoredEndpoint.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with given Id does not exist");
+
+        if(monitorUser.get().getId() != monitoredEndpoint.get().getOwner().getId())
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not own specified endpoint");
 
         monitoredEndpointRepository.deleteById(monitoredEndpointId);
@@ -99,14 +98,13 @@ public class MonitoredEndpointService {
 
 
 
-    private MonitorUser checkUserIsAuthorized(String token) {
-        Optional<MonitorUser> userOptional = monitorUserService.getUniqueUserByToken(token);
-        if(userOptional.isEmpty())
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token did not match expected number of users");
+    private MonitorUser getOrCreateUser(String keycloakId) {
+        Optional<MonitorUser> userOptional = monitorUserService.getUserByKeycloakId(keycloakId);
+        if(userOptional.isEmpty()){
+            MonitorUser monitorUser = new MonitorUser();
+            monitorUser.setKeycloakId(keycloakId);
+            return monitorUserService.createUser(monitorUser);
+        }
         return userOptional.get();
-    }
-
-    public void updateEndpointLastCheck(MonitoredEndpoint endpoint, LocalDateTime checkDate) {
-        monitoredEndpointRepository.updateEndpointLastCheck(endpoint, checkDate);
     }
 }

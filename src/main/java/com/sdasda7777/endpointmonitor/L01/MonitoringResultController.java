@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Optional;
 
 @RestController
@@ -39,10 +39,9 @@ public class MonitoringResultController {
                     "Authorization token must be provided");
         }
 
-        Optional<MonitorUser> userOptional = monitorUserService.getUniqueUserByToken(token);
+        Optional<MonitorUser> userOptional = monitorUserService.getUserByKeycloakId(token);
         if(userOptional.isEmpty()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Token did not match expected number of users");
+            return Collections.emptyList();
         }
 
         Optional<MonitoredEndpoint> endpoint = monitoredEndpointService.getEndpointById(monitoredEndpointId);

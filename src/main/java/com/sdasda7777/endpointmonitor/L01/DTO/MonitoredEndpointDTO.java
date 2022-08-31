@@ -5,6 +5,7 @@ import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 public class MonitoredEndpointDTO {
     private Long id;
@@ -25,6 +26,18 @@ public class MonitoredEndpointDTO {
         this.ownerId = endpoint.getOwner().getId();
     }
 
+    public MonitoredEndpointDTO(Long id, String name, String url,
+                                LocalDateTime creationDate, LocalDateTime lastCheckDate,
+                                Integer monitoringInterval, Long ownerId
+                                ) {
+        this.id = id;
+        this.name = name;
+        this.url = url;
+        this.creationDate = creationDate;
+        this.lastCheckDate = lastCheckDate;
+        this.monitoringInterval = monitoringInterval;
+        this.ownerId = ownerId;
+    }
 
     public Long getId() {
         return id;
@@ -52,6 +65,20 @@ public class MonitoredEndpointDTO {
 
     public Long getOwnerId() {
         return ownerId;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MonitoredEndpointDTO that = (MonitoredEndpointDTO) o;
+        return id.equals(that.id) && name.equals(that.name) && url.equals(that.url) && creationDate.equals(that.creationDate) && lastCheckDate.equals(that.lastCheckDate) && monitoringInterval.equals(that.monitoringInterval) && ownerId.equals(that.ownerId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, url, creationDate, lastCheckDate, monitoringInterval, ownerId);
     }
 
 
