@@ -6,6 +6,7 @@ import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.L02.MonitorUserService;
 import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
 import com.sdasda7777.endpointmonitor.L02.MonitoringResultService;
+import com.sdasda7777.endpointmonitor.security.authentication.KeycloakUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -20,43 +21,31 @@ import java.util.Optional;
 public class MonitoringResultController {
 
     @Autowired
-    MonitoredEndpointService monitoredEndpointService;
-
-    @Autowired
     MonitoringResultService monitoringResultService;
 
     @Autowired
-    MonitorUserService monitorUserService;
+    KeycloakUserService keycloakCurrentUserService;
+
+    public MonitoringResultController(MonitoringResultService monitoringResultService,
+                                      KeycloakUserService keycloakCurrentUserService){
+        this.monitoringResultService = monitoringResultService;
+        this.keycloakCurrentUserService = keycloakCurrentUserService;
+    }
 
     @GetMapping("{monitoredEndpointId}")
     public Collection<MonitoringResultDTO> getMonitoringResults(
             @PathVariable(name = "monitoredEndpointId") Long monitoredEndpointId,
-            @RequestParam(name = "limit", required = false) Long limitResults,
-            @RequestHeader(value = "Authorization", required = false) String token){
+            @RequestParam(name = "limit", required = false) Long limitResults
+    ){
+        return MonitoringResultDTO.convertMany(
+                monitoringResultService.getAllForEndpoint(
+                        getKeycloakId(), monitoredEndpointId, limitResults));
+    }
 
-        if(token == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Authorization token must be provided");
-        }
-
-        Optional<MonitorUser> userOptional = monitorUserService.getUserByKeycloakId(token);
-        if(userOptional.isEmpty()){
-            return Collections.emptyList();
-        }
-
-        Optional<MonitoredEndpoint> endpoint = monitoredEndpointService.getEndpointById(monitoredEndpointId);
-        if(endpoint.isEmpty() || endpoint.get().getOwner().getId() != userOptional.get().getId()){
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Endpoint with specified Id does not exist or user does not have privileges");
-        }
-
-        if(limitResults != null){
-            return MonitoringResultDTO.convertMany(
-                            monitoringResultService.getAllForEndpointLimited(monitoredEndpointId,
-                                    limitResults));
-        }else{
-            return MonitoringResultDTO.convertMany(
-                            monitoringResultService.getAllForEndpoint(monitoredEndpointId));
-        }
+    private String getKeycloakId() {
+        String ret = keycloakCurrentUserService.getUserId();
+        if(ret == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Authorization token must be provided");
+        return ret;
     }
 }

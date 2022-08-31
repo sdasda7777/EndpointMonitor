@@ -34,13 +34,11 @@ class MonitoredEndpointControllerTest {
                 new InvalidInvocationException(
                         "Inappropriate usage of mocked object"));
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
-
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -68,17 +66,15 @@ class MonitoredEndpointControllerTest {
                 new InvalidInvocationException(
                         "Inappropriate usage of mocked object"));
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        Mockito.doReturn(Collections.emptyList())
-                .when(monitorUserRepository).findByKeycloakId("bad_keycloakid");
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
-
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
         Mockito.doReturn(Collections.emptyList())
                 .when(monitoredEndpointRepository).getEndpointsByKeycloakId("bad_keycloakid");
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        Mockito.doReturn(Collections.emptyList())
+                .when(monitorUserRepository).findByKeycloakId("bad_keycloakid");
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -108,8 +104,6 @@ class MonitoredEndpointControllerTest {
                 Mockito.mock(MonitorUserRepository.class, defaultAnswer);
         Mockito.doReturn(List.of(monitorUser))
                 .when(monitorUserRepository).findByKeycloakId("good_keycloakid");
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
 
         MonitoredEndpoint monitoredEndpoint0 = new MonitoredEndpoint(
             "Test endpoint 0", "http://url0.org",
@@ -132,6 +126,7 @@ class MonitoredEndpointControllerTest {
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
         Mockito.doReturn(List.of(monitoredEndpoint0, monitoredEndpoint1))
                 .when(monitoredEndpointRepository).getEndpointsByKeycloakId("good_keycloakid");
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -177,14 +172,13 @@ class MonitoredEndpointControllerTest {
         monitorUser.setId(43l);
         monitorUser.setKeycloakId("good_keycloakid");
 
+        MonitoredEndpointRepository monitoredEndpointRepository =
+                Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
         MonitorUserRepository monitorUserRepository =
                 Mockito.mock(MonitorUserRepository.class, defaultAnswer);
         Mockito.doReturn(List.of(monitorUser))
                 .when(monitorUserRepository).findByKeycloakId("good_keycloakid");
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
-        MonitoredEndpointRepository monitoredEndpointRepository =
-                Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -288,12 +282,11 @@ class MonitoredEndpointControllerTest {
         monitorUser.setId(43l);
         monitorUser.setKeycloakId("known_keycloakid");
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -390,12 +383,11 @@ class MonitoredEndpointControllerTest {
         monitorUser2.setId(44l);
         monitorUser2.setKeycloakId("known_keycloakid2");
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -472,12 +464,11 @@ class MonitoredEndpointControllerTest {
         monitorUser2.setId(44l);
         monitorUser2.setKeycloakId("known_keycloakid2");
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -575,12 +566,11 @@ class MonitoredEndpointControllerTest {
         monitorUser2.setId(44l);
         monitorUser2.setKeycloakId("known_keycloakid2");
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -645,12 +635,11 @@ class MonitoredEndpointControllerTest {
         monitorUser2.setId(44l);
         monitorUser2.setKeycloakId("known_keycloakid2");
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 
@@ -741,12 +730,11 @@ class MonitoredEndpointControllerTest {
         monitorUser2.setId(44l);
         monitorUser2.setKeycloakId("known_keycloakid2");
 
-        MonitorUserRepository monitorUserRepository =
-                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
-        MonitorUserService monitorUserService =
-                new MonitorUserService(monitorUserRepository);
         MonitoredEndpointRepository monitoredEndpointRepository =
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
+        MonitorUserRepository monitorUserRepository =
+                Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+        MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
 

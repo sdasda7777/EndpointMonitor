@@ -2,6 +2,7 @@ package com.sdasda7777.endpointmonitor.L02;
 
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
+import com.sdasda7777.endpointmonitor.L03.MonitorUserRepository;
 import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,8 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MonitoredEndpointService {
@@ -84,7 +88,6 @@ public class MonitoredEndpointService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Endpoint with given Id does not exist");
 
         Optional<MonitorUser> monitorUser = monitorUserService.getUserByKeycloakId(keycloakId);
-
         if(monitorUser.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with given Id does not exist");
 
@@ -96,15 +99,13 @@ public class MonitoredEndpointService {
     }
 
 
-
-
     private MonitorUser getOrCreateUser(String keycloakId) {
-        Optional<MonitorUser> userOptional = monitorUserService.getUserByKeycloakId(keycloakId);
-        if(userOptional.isEmpty()){
-            MonitorUser monitorUser = new MonitorUser();
-            monitorUser.setKeycloakId(keycloakId);
-            return monitorUserService.createUser(monitorUser);
+        Optional<MonitorUser> monitorUser = monitorUserService.getUserByKeycloakId(keycloakId);
+        if(monitorUser.isEmpty()){
+            MonitorUser newMonitorUser = new MonitorUser();
+            newMonitorUser.setKeycloakId(keycloakId);
+            return monitorUserService.createUser(newMonitorUser);
         }
-        return userOptional.get();
+        return monitorUser.get();
     }
 }

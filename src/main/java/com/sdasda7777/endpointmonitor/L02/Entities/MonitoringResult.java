@@ -26,6 +26,14 @@ public class MonitoringResult {
         this.resultPayload = null;
     }
 
+    public MonitoringResult(LocalDateTime checkDate,
+                            Integer resultStatusCode,
+                            String resultPayload){
+        this.checkDate = checkDate;
+        this.resultStatusCode = resultStatusCode;
+        this.resultPayload = resultPayload;
+    }
+
 
     public Long getId() {
         return id;
