@@ -10,12 +10,12 @@ public class MonitorUser {
 
     @Id
     @GeneratedValue
-    public Long id;
+    Long id;
 
     String keycloakId;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
-    public Collection<MonitoredEndpoint> monitoredEndpoints;
+    Collection<MonitoredEndpoint> monitoredEndpoints;
 
     public MonitorUser(){
         this.keycloakId = null;
@@ -30,14 +30,17 @@ public class MonitorUser {
         this.id = id;
     }
 
+    /*
     public String getKeycloakId() {
         return keycloakId;
     }
+    */
 
     public void setKeycloakId(String username) {
         this.keycloakId = username;
     }
 
+    /*
     public Collection<MonitoredEndpoint> getMonitoredEndpoints() {
         return monitoredEndpoints;
     }
@@ -45,4 +48,5 @@ public class MonitorUser {
     public void setMonitoredEndpoints(Collection<MonitoredEndpoint> monitoredEndpoints) {
         this.monitoredEndpoints = monitoredEndpoints;
     }
+    */
 }

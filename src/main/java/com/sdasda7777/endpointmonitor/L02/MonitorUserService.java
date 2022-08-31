@@ -17,9 +17,11 @@ public class MonitorUserService {
         this.monitorUserRepository = monitorUserRepository;
     }
 
+    /*
     public Optional<MonitorUser> getUserById(Long id){
         return monitorUserRepository.findById(id);
     }
+    */
 
     public Optional<MonitorUser> getUserByKeycloakId(String username) {
         Collection<MonitorUser> users = monitorUserRepository.findByKeycloakId(username);

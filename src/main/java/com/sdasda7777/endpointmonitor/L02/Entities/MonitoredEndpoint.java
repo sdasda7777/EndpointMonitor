@@ -30,7 +30,7 @@ public class MonitoredEndpoint {
     private MonitorUser owner;
 
     @OneToMany(mappedBy = "monitoredEndpoint", cascade = CascadeType.ALL)
-    public Collection<MonitoringResult> monitoringResults;
+    private Collection<MonitoringResult> monitoringResults;
 
 
     public MonitoredEndpoint(){
@@ -100,9 +100,11 @@ public class MonitoredEndpoint {
         }
     }
 
+    /*
     public LocalDateTime getNextCheckDate() {
         return nextCheckDate;
     }
+    */
 
     public Integer getMonitoringInterval() {
         return monitoringInterval;
@@ -123,6 +125,7 @@ public class MonitoredEndpoint {
         this.owner = owner;
     }
 
+    /*
     public Collection<MonitoringResult> getMonitoringResults() {
         return monitoringResults;
     }
@@ -130,6 +133,7 @@ public class MonitoredEndpoint {
     public void setMonitoringResults(Collection<MonitoringResult> monitoringResults) {
         this.monitoringResults = monitoringResults;
     }
+    */
 
     public boolean validOrValidatableUrl() {
         UrlValidator validator = new UrlValidator();
