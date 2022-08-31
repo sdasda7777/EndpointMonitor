@@ -32,10 +32,12 @@ public class MonitoringService {
 
         @Override
         public void run() {
-            MonitoringResult status = checkStatus(endpoint.getUrl());
-            status.setMonitoredEndpoint(endpoint);
-            monitoringResultService.createMonitoringResult(status);
-            monitoredEndpointService.updateEndpointLastCheck(endpoint, status.getCheckDate());
+            try{
+                MonitoringResult status = checkStatus(endpoint.getUrl());
+                status.setMonitoredEndpoint(endpoint);
+                monitoringResultService.createMonitoringResult(status);
+                monitoredEndpointService.updateEndpointLastCheck(endpoint, status.getCheckDate());
+            } catch (RuntimeException e){}
         }
 
         static MonitoringResult checkStatus(String url){
@@ -91,7 +93,6 @@ public class MonitoringService {
 
         for(MonitoredEndpoint endpoint : needUpdating){
             executor.execute(new EndpointCheckWorkerThread(endpoint));
-            //new EndpointCheckWorkerThread(endpoint).run();
         }
     }
 

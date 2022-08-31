@@ -2,6 +2,9 @@ package com.sdasda7777.endpointmonitor.L01;
 
 import com.sdasda7777.endpointmonitor.L01.DTO.MonitoredEndpointDTO;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InsufficientDataOwnershipException;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidEndpointIdException;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidUserIdException;
 import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
 import com.sdasda7777.endpointmonitor.security.authentication.KeycloakUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,18 +70,40 @@ public class MonitoredEndpointController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "If monitoring interval is provided, it must be larger than 0");
 
-        return MonitoredEndpointDTO.convertOne(
-                monitoredEndpointService.updateMonitoredEndpoint(getKeycloakId(),
-                                        monitoredEndpointId, monitoredEndpoint));
+        try {
+            return MonitoredEndpointDTO.convertOne(
+                    monitoredEndpointService.updateMonitoredEndpoint(getKeycloakId(),
+                            monitoredEndpointId, monitoredEndpoint));
+        } catch (InvalidEndpointIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Endpoint with given Id (%s) does not exist".formatted(e.getMessage()));
+        } catch (InvalidUserIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "User with given Id (%s) does not exist".formatted(e.getMessage()));
+        } catch (InsufficientDataOwnershipException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "User does not own specified endpoint");
+        }
     }
 
     @DeleteMapping("/{endpointId}")
     public MonitoredEndpointDTO deleteMonitoredEndpoint(
             @PathVariable(name = "monitoredEndpointId") Long monitoredEndpointId
     ){
-        return MonitoredEndpointDTO.convertOne(
+        try {
+            return MonitoredEndpointDTO.convertOne(
                     monitoredEndpointService.deleteEndpoint(getKeycloakId(),
-                                                            monitoredEndpointId));
+                            monitoredEndpointId));
+        } catch (InvalidEndpointIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Endpoint with given Id (%s) does not exist".formatted(e.getMessage()));
+        } catch (InvalidUserIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "User with given Id (%s) does not exist".formatted(e.getMessage()));
+        } catch (InsufficientDataOwnershipException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "User does not own specified endpoint");
+        }
     }
 
     private String getKeycloakId() {

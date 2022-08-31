@@ -151,7 +151,7 @@ class MonitoringResultControllerTest {
                 .when(keycloakUserService).getUserId();
 
         ResponseStatusException protoResult1 = new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Endpoint with given Id does not exist");
+                HttpStatus.NOT_FOUND, "Endpoint with given Id (69) does not exist");
         ResponseStatusException result1 = assertThrows(
                 ResponseStatusException.class,
                 () -> monitoringResultController.getMonitoringResults(69l, null)
@@ -164,7 +164,7 @@ class MonitoringResultControllerTest {
                 .when(keycloakUserService).getUserId();
 
         ResponseStatusException protoResult2 = new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "User with given Id does not exist");
+                HttpStatus.NOT_FOUND, "User with given Id (unknown_keycloakid) does not exist");
         ResponseStatusException result2 = assertThrows(
                 ResponseStatusException.class,
                 () -> monitoringResultController.getMonitoringResults(45l, null)

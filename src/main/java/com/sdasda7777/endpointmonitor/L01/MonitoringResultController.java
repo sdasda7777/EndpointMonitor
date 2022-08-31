@@ -3,6 +3,9 @@ package com.sdasda7777.endpointmonitor.L01;
 import com.sdasda7777.endpointmonitor.L01.DTO.MonitoringResultDTO;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InsufficientDataOwnershipException;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidEndpointIdException;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidUserIdException;
 import com.sdasda7777.endpointmonitor.L02.MonitorUserService;
 import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
 import com.sdasda7777.endpointmonitor.L02.MonitoringResultService;
@@ -37,9 +40,20 @@ public class MonitoringResultController {
             @PathVariable(name = "monitoredEndpointId") Long monitoredEndpointId,
             @RequestParam(name = "limit", required = false) Long limitResults
     ){
-        return MonitoringResultDTO.convertMany(
-                monitoringResultService.getAllForEndpoint(
-                        getKeycloakId(), monitoredEndpointId, limitResults));
+        try{
+            return MonitoringResultDTO.convertMany(
+                    monitoringResultService.getAllForEndpoint(
+                            getKeycloakId(), monitoredEndpointId, limitResults));
+        } catch (InvalidEndpointIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Endpoint with given Id (%s) does not exist".formatted(e.getMessage()));
+        } catch (InvalidUserIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "User with given Id (%s) does not exist".formatted(e.getMessage()));
+        } catch (InsufficientDataOwnershipException e){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "User does not own specified endpoint");
+        }
     }
 
     private String getKeycloakId() {

@@ -2,19 +2,16 @@ package com.sdasda7777.endpointmonitor.L02;
 
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
-import com.sdasda7777.endpointmonitor.L03.MonitorUserRepository;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InsufficientDataOwnershipException;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidEndpointIdException;
+import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidUserIdException;
 import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class MonitoredEndpointService {
@@ -56,14 +53,14 @@ public class MonitoredEndpointService {
     public MonitoredEndpoint updateMonitoredEndpoint(String keycloakId, Long monitoredEndpointId, MonitoredEndpoint newEndpoint){
         Optional<MonitoredEndpoint> currentOptional = monitoredEndpointRepository.findById(monitoredEndpointId);
         if(currentOptional.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Endpoint with given Id does not exist");
+            throw new InvalidEndpointIdException(monitoredEndpointId.toString());
 
         Optional<MonitorUser> monitorUser = monitorUserService.getUserByKeycloakId(keycloakId);
         if(monitorUser.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with given Id does not exist");
+            throw new InvalidUserIdException(keycloakId);
 
         if(monitorUser.get().getId() != currentOptional.get().getOwner().getId())
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not own specified endpoint");
+            throw new InsufficientDataOwnershipException("");
 
         MonitoredEndpoint currentEndpoint = currentOptional.get();
         if(newEndpoint.getName() != null)
@@ -83,16 +80,15 @@ public class MonitoredEndpointService {
     public MonitoredEndpoint deleteEndpoint(String keycloakId, Long monitoredEndpointId) {
         Optional<MonitoredEndpoint> monitoredEndpoint = getEndpointById(monitoredEndpointId);
 
-        //TODO move ResponseStatusException to respective Controller
         if(monitoredEndpoint.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Endpoint with given Id does not exist");
+            throw new InvalidEndpointIdException(monitoredEndpointId.toString());
 
         Optional<MonitorUser> monitorUser = monitorUserService.getUserByKeycloakId(keycloakId);
         if(monitorUser.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with given Id does not exist");
+            throw new InvalidUserIdException(keycloakId);
 
         if(monitorUser.get().getId() != monitoredEndpoint.get().getOwner().getId())
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not own specified endpoint");
+            throw new InsufficientDataOwnershipException("");
 
         monitoredEndpointRepository.deleteById(monitoredEndpointId);
         return monitoredEndpoint.get();
