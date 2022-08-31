@@ -36,11 +36,8 @@ public class MonitoredEndpointController {
 
     @PostMapping("")
     public MonitoredEndpointDTO createEndpoint(
-            @RequestHeader(value = "Authorization", required = false) String token,
             @RequestBody MonitoredEndpoint monitoredEndpoint
     ){
-        //String keycloakId = keycloakCurrentUserService.getUserId();
-
         if(monitoredEndpoint.getName() == null || monitoredEndpoint.getName().isEmpty())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                             "Endpoint name must be provided");
