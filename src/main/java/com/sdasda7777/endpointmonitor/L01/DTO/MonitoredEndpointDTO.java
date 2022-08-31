@@ -76,11 +76,6 @@ public class MonitoredEndpointDTO {
         return id.equals(that.id) && name.equals(that.name) && url.equals(that.url) && creationDate.equals(that.creationDate) && lastCheckDate.equals(that.lastCheckDate) && monitoringInterval.equals(that.monitoringInterval) && ownerId.equals(that.ownerId);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, url, creationDate, lastCheckDate, monitoringInterval, ownerId);
-    }
-
 
     public static MonitoredEndpointDTO convertOne(MonitoredEndpoint endpoint){
         return new MonitoredEndpointDTO(endpoint);

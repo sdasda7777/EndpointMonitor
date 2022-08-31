@@ -85,7 +85,7 @@ public class MonitoredEndpointService {
 
         Optional<MonitorUser> monitorUser = monitorUserService.getUserByKeycloakId(keycloakId);
 
-        if(monitoredEndpoint.isEmpty())
+        if(monitorUser.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User with given Id does not exist");
 
         if(monitorUser.get().getId() != monitoredEndpoint.get().getOwner().getId())
