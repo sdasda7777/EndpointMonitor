@@ -4,6 +4,7 @@ import com.sdasda7777.endpointmonitor.L01.DTO.MonitoringResultDTO;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoringResult;
+import com.sdasda7777.endpointmonitor.L02.LocalDateTimeService;
 import com.sdasda7777.endpointmonitor.L02.MonitorUserService;
 import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
 import com.sdasda7777.endpointmonitor.L02.MonitoringResultService;
@@ -12,13 +13,16 @@ import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
 import com.sdasda7777.endpointmonitor.L03.MonitoringResultRepository;
 import com.sdasda7777.endpointmonitor.security.authentication.KeycloakUserService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jmx.access.InvalidInvocationException;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,30 +42,30 @@ class MonitoringResultControllerTest {
                 Mockito.mock(MonitoredEndpointRepository.class, defaultAnswer);
         MonitorUserRepository monitorUserRepository =
                 Mockito.mock(MonitorUserRepository.class, defaultAnswer);
+
+        LocalDateTimeService localDateTimeService = Mockito.mock(LocalDateTimeService.class, defaultAnswer);
         MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
-                new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
+                new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService, localDateTimeService);
 
         MonitoringResultRepository monitoringResultRepository =
                 Mockito.mock(MonitoringResultRepository.class, defaultAnswer);
         MonitoringResultService monitoringResultService =
                 new MonitoringResultService(monitoringResultRepository, monitoredEndpointService, monitorUserService);
 
-        KeycloakUserService keycloakUserService =
-                Mockito.mock(KeycloakUserService.class, defaultAnswer);
-
         MonitoringResultController monitoringResultController =
-                new MonitoringResultController(monitoringResultService, keycloakUserService);
+                new MonitoringResultController(monitoringResultService);
 
         // No keycloak Id
+        HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class, defaultAnswer);
         Mockito.doReturn(null)
-                .when(keycloakUserService).getUserId();
+                .when(request1).getUserPrincipal();
 
         ResponseStatusException protoResult1 = new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, "Authorization token must be provided");
         ResponseStatusException result1 = assertThrows(
                 ResponseStatusException.class,
-                () -> monitoringResultController.getMonitoringResults(69l, null)
+                () -> monitoringResultController.getMonitoringResults(69l, null, request1)
         );
         assertEquals(protoResult1.getStatus(), result1.getStatus());
         assertEquals(protoResult1.getMessage(), result1.getMessage());
@@ -117,9 +121,11 @@ class MonitoringResultControllerTest {
                 .when(monitorUserRepository).findByKeycloakId("known_keycloakid2");
         Mockito.doReturn(Collections.emptyList())
                 .when(monitorUserRepository).findByKeycloakId("unknown_keycloakid");
+
+        LocalDateTimeService localDateTimeService = Mockito.mock(LocalDateTimeService.class, defaultAnswer);
         MonitorUserService monitorUserService = new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
-                new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService);
+                new MonitoredEndpointService(monitoredEndpointRepository, monitorUserService, localDateTimeService);
 
         MonitoringResultRepository monitoringResultRepository =
                 Mockito.mock(MonitoringResultRepository.class, defaultAnswer);
@@ -133,7 +139,7 @@ class MonitoringResultControllerTest {
                 Mockito.mock(KeycloakUserService.class, defaultAnswer);
 
         MonitoringResultController monitoringResultController =
-                new MonitoringResultController(monitoringResultService, keycloakUserService);
+                new MonitoringResultController(monitoringResultService);
 
         MonitoringResultDTO monitoringResultDTO1 = new MonitoringResultDTO(
                 46l, LocalDateTime.of(2003, 3, 27, 15, 44, 58),
@@ -147,50 +153,74 @@ class MonitoringResultControllerTest {
         );
 
         // Unknown endpoint
+        JwtAuthenticationToken principal1 = Mockito.mock(JwtAuthenticationToken.class, defaultAnswer);
+        Mockito.doReturn(true)
+                .when(principal1).isAuthenticated();
         Mockito.doReturn("known_keycloakid1")
-                .when(keycloakUserService).getUserId();
+                .when(principal1).getName();
+        HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class, defaultAnswer);
+        Mockito.doReturn(principal1)
+                .when(request1).getUserPrincipal();
 
         ResponseStatusException protoResult1 = new ResponseStatusException(
                 HttpStatus.NOT_FOUND, "Endpoint with given Id (69) does not exist");
         ResponseStatusException result1 = assertThrows(
                 ResponseStatusException.class,
-                () -> monitoringResultController.getMonitoringResults(69l, null)
+                () -> monitoringResultController.getMonitoringResults(69l, null, request1)
         );
         assertEquals(protoResult1.getStatus(), result1.getStatus());
         assertEquals(protoResult1.getMessage(), result1.getMessage());
 
         // Unknown user
+        JwtAuthenticationToken principal2 = Mockito.mock(JwtAuthenticationToken.class, defaultAnswer);
+        Mockito.doReturn(true)
+                .when(principal2).isAuthenticated();
         Mockito.doReturn("unknown_keycloakid")
-                .when(keycloakUserService).getUserId();
+                .when(principal2).getName();
+        HttpServletRequest request2 = Mockito.mock(HttpServletRequest.class, defaultAnswer);
+        Mockito.doReturn(principal2)
+                .when(request2).getUserPrincipal();
 
         ResponseStatusException protoResult2 = new ResponseStatusException(
                 HttpStatus.NOT_FOUND, "User with given Id (unknown_keycloakid) does not exist");
         ResponseStatusException result2 = assertThrows(
                 ResponseStatusException.class,
-                () -> monitoringResultController.getMonitoringResults(45l, null)
+                () -> monitoringResultController.getMonitoringResults(45l, null, request2)
         );
         assertEquals(protoResult2.getStatus(), result2.getStatus());
         assertEquals(protoResult2.getMessage(), result2.getMessage());
 
         // Non-owner user
+        JwtAuthenticationToken principal3 = Mockito.mock(JwtAuthenticationToken.class, defaultAnswer);
+        Mockito.doReturn(true)
+                .when(principal3).isAuthenticated();
         Mockito.doReturn("known_keycloakid2")
-                .when(keycloakUserService).getUserId();
+                .when(principal3).getName();
+        HttpServletRequest request3 = Mockito.mock(HttpServletRequest.class, defaultAnswer);
+        Mockito.doReturn(principal3)
+                .when(request3).getUserPrincipal();
 
         ResponseStatusException protoResult3 = new ResponseStatusException(
                 HttpStatus.UNAUTHORIZED, "User does not own specified endpoint");
         ResponseStatusException result3 = assertThrows(
                 ResponseStatusException.class,
-                () -> monitoringResultController.getMonitoringResults(45l, null)
+                () -> monitoringResultController.getMonitoringResults(45l, null, request3)
         );
         assertEquals(protoResult3.getStatus(), result3.getStatus());
         assertEquals(protoResult3.getMessage(), result3.getMessage());
 
         // Known user without limit
+        JwtAuthenticationToken principal4 = Mockito.mock(JwtAuthenticationToken.class, defaultAnswer);
+        Mockito.doReturn(true)
+                .when(principal4).isAuthenticated();
         Mockito.doReturn("known_keycloakid1")
-                .when(keycloakUserService).getUserId();
+                .when(principal4).getName();
+        HttpServletRequest request4 = Mockito.mock(HttpServletRequest.class, defaultAnswer);
+        Mockito.doReturn(principal4)
+                .when(request4).getUserPrincipal();
 
         ArrayList<MonitoringResultDTO> result4 =
-            monitoringResultController.getMonitoringResults(45l, null)
+            monitoringResultController.getMonitoringResults(45l, null, request4)
                     .stream().collect(Collectors.toCollection(ArrayList::new));
         assertEquals(2, result4.size());
         assertEquals(monitoringResultDTO2, result4.get(0));
@@ -198,7 +228,7 @@ class MonitoringResultControllerTest {
 
         // Known user with limit smaller than result count
         ArrayList<MonitoringResultDTO> result5 =
-                monitoringResultController.getMonitoringResults(45l, 1l)
+                monitoringResultController.getMonitoringResults(45l, 1l, request4)
                         .stream().collect(Collectors.toCollection(ArrayList::new));
         assertEquals(1, result5.size());
         MonitoringResultDTO result5DTO = result5.get(0);
@@ -210,7 +240,7 @@ class MonitoringResultControllerTest {
 
         // Known user with limit larger than result count
         ArrayList<MonitoringResultDTO> result6 =
-                monitoringResultController.getMonitoringResults(45l, 200l)
+                monitoringResultController.getMonitoringResults(45l, 200l, request4)
                         .stream().collect(Collectors.toCollection(ArrayList::new));
         assertEquals(2, result6.size());
         assertEquals(monitoringResultDTO2, result6.get(0));

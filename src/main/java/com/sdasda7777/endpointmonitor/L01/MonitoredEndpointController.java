@@ -7,11 +7,18 @@ import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidEndpointIdException;
 import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidUserIdException;
 import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
 import com.sdasda7777.endpointmonitor.security.authentication.KeycloakUserService;
+import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
 import java.util.Collection;
 
 @RestController
@@ -21,25 +28,30 @@ public class MonitoredEndpointController {
     @Autowired
     MonitoredEndpointService monitoredEndpointService;
 
-    @Autowired
-    KeycloakUserService keycloakCurrentUserService;
 
-    public MonitoredEndpointController(MonitoredEndpointService monitoredEndpointService,
-                                       KeycloakUserService keycloakCurrentUserService){
+    public MonitoredEndpointController(MonitoredEndpointService monitoredEndpointService){
         this.monitoredEndpointService = monitoredEndpointService;
-        this.keycloakCurrentUserService = keycloakCurrentUserService;
     }
 
 
     @GetMapping("")
-    public Collection<MonitoredEndpointDTO> getMonitoredEndpoints(){
-        return MonitoredEndpointDTO.convertMany(
-                monitoredEndpointService.getMonitoredEndpointsByKeycloakId(getKeycloakId()));
+    public Collection<MonitoredEndpointDTO> getMonitoredEndpoints(
+            HttpServletRequest request
+    ){
+        try {
+            return MonitoredEndpointDTO.convertMany(
+                    monitoredEndpointService.getMonitoredEndpointsByKeycloakId(
+                            KeycloakUserService.getKeycloakId(request)));
+        } catch (AuthenticationCredentialsNotFoundException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Authorization token must be provided");
+        }
     }
 
     @PostMapping("")
     public MonitoredEndpointDTO createEndpoint(
-            @RequestBody MonitoredEndpoint monitoredEndpoint
+            @RequestBody MonitoredEndpoint monitoredEndpoint,
+            HttpServletRequest request
     ){
         if(monitoredEndpoint.getName() == null || monitoredEndpoint.getName().isEmpty())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -51,14 +63,22 @@ public class MonitoredEndpointController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                             "Monitoring interval must be provided and be larger than 0");
 
-        return MonitoredEndpointDTO.convertOne(
-                monitoredEndpointService.createMonitoredEndpoint(getKeycloakId(), monitoredEndpoint));
+        try {
+            return MonitoredEndpointDTO.convertOne(
+                    monitoredEndpointService.createMonitoredEndpoint(
+                            KeycloakUserService.getKeycloakId(request),
+                            monitoredEndpoint));
+        } catch (AuthenticationCredentialsNotFoundException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Authorization token must be provided");
+        }
     }
 
     @PutMapping("/{monitoredEndpointId}")
     public MonitoredEndpointDTO updateEndpoint(
             @PathVariable(name = "monitoredEndpointId") Long monitoredEndpointId,
-            @RequestBody MonitoredEndpoint monitoredEndpoint
+            @RequestBody MonitoredEndpoint monitoredEndpoint,
+            HttpServletRequest request
     ){
         if(monitoredEndpoint.getName() != null && monitoredEndpoint.getName().isEmpty())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -72,8 +92,12 @@ public class MonitoredEndpointController {
 
         try {
             return MonitoredEndpointDTO.convertOne(
-                    monitoredEndpointService.updateMonitoredEndpoint(getKeycloakId(),
+                    monitoredEndpointService.updateMonitoredEndpoint(
+                            KeycloakUserService.getKeycloakId(request),
                             monitoredEndpointId, monitoredEndpoint));
+        } catch (AuthenticationCredentialsNotFoundException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Authorization token must be provided");
         } catch (InvalidEndpointIdException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Endpoint with given Id (%s) does not exist".formatted(e.getMessage()));
@@ -88,12 +112,17 @@ public class MonitoredEndpointController {
 
     @DeleteMapping("/{endpointId}")
     public MonitoredEndpointDTO deleteMonitoredEndpoint(
-            @PathVariable(name = "monitoredEndpointId") Long monitoredEndpointId
+            @PathVariable(name = "monitoredEndpointId") Long monitoredEndpointId,
+            HttpServletRequest request
     ){
         try {
             return MonitoredEndpointDTO.convertOne(
-                    monitoredEndpointService.deleteEndpoint(getKeycloakId(),
+                    monitoredEndpointService.deleteEndpoint(
+                            KeycloakUserService.getKeycloakId(request),
                             monitoredEndpointId));
+        } catch (AuthenticationCredentialsNotFoundException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Authorization token must be provided");
         } catch (InvalidEndpointIdException e){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Endpoint with given Id (%s) does not exist".formatted(e.getMessage()));
@@ -104,12 +133,5 @@ public class MonitoredEndpointController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                     "User does not own specified endpoint");
         }
-    }
-
-    private String getKeycloakId() {
-        String ret = keycloakCurrentUserService.getUserId();
-        if(ret == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Authorization token must be provided");
-        return ret;
     }
 }

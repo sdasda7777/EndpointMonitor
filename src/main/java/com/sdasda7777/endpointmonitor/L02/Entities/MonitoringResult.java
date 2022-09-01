@@ -10,6 +10,7 @@ public class MonitoringResult {
     @GeneratedValue
     Long id;
 
+    @Column(columnDefinition = "TIMESTAMP")
     LocalDateTime checkDate;
     Integer resultStatusCode;
     @Column(columnDefinition="TEXT")

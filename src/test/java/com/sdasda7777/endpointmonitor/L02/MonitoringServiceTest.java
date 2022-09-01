@@ -87,11 +87,16 @@ public class MonitoringServiceTest {
             return ArrayListAddWrapper.get();
         })
                 .when(monitoredEndpointRepository).findAll();
+
+        LocalDateTimeService localDateTimeService = Mockito.mock(LocalDateTimeService.class, defaultAnswer);
+        Mockito.doReturn(LocalDateTime.of(2003, 3, 27, 15, 44, 58))
+                .when(localDateTimeService).now();
         MonitorUserService monitorUserService =
                 new MonitorUserService(monitorUserRepository);
         MonitoredEndpointService monitoredEndpointService =
                 new MonitoredEndpointService(monitoredEndpointRepository,
-                                            monitorUserService);
+                                            monitorUserService,
+                                            localDateTimeService);
         MonitoringResultService monitoringResultService =
                 new MonitoringResultService(monitoringResultRepository,
                                             monitoredEndpointService,

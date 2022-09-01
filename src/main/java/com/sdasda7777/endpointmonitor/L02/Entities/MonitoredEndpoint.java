@@ -20,8 +20,11 @@ public class MonitoredEndpoint {
 
     @Column(columnDefinition="TEXT")
     private String url;
+    @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime creationDate;
+    @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime lastCheckDate;
+    @Column(columnDefinition = "TIMESTAMP")
     private LocalDateTime nextCheckDate;
     private Integer monitoringInterval;
 

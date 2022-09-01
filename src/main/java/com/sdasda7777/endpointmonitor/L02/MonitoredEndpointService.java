@@ -21,10 +21,15 @@ public class MonitoredEndpointService {
     @Autowired
     MonitorUserService monitorUserService;
 
+    @Autowired
+    LocalDateTimeService localDateTimeService;
+
     public MonitoredEndpointService(MonitoredEndpointRepository monitoredEndpointRepository,
-                                    MonitorUserService monitorUserService){
+                                    MonitorUserService monitorUserService,
+                                    LocalDateTimeService localDateTimeService){
         this.monitoredEndpointRepository = monitoredEndpointRepository;
         this.monitorUserService = monitorUserService;
+        this.localDateTimeService = localDateTimeService;
     }
 
     public Collection<MonitoredEndpoint> getRequiringUpdate() {
@@ -44,8 +49,12 @@ public class MonitoredEndpointService {
         MonitorUser monitorUser = getOrCreateUser(keycloakId);
 
         monitoredEndpoint.setOwner(monitorUser);
-        monitoredEndpoint.setCreationDate(LocalDateTime.now());
-        monitoredEndpoint.setLastCheckDate(LocalDateTime.MIN);
+
+        LocalDateTime time = localDateTimeService.now();
+        monitoredEndpoint.setCreationDate(time);
+        monitoredEndpoint.setLastCheckDate(time.minusSeconds(
+                monitoredEndpoint.getMonitoringInterval()
+        ));
 
         return monitoredEndpointRepository.save(monitoredEndpoint);
     }
