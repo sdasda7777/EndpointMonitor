@@ -1,4 +1,4 @@
-package com.sdasda7777.endpointmonitor.L01.DTO;
+package com.sdasda7777.endpointmonitor.layer1.dto;
 
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 

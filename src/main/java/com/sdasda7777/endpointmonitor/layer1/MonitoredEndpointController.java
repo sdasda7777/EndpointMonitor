@@ -1,6 +1,6 @@
-package com.sdasda7777.endpointmonitor.L01;
+package com.sdasda7777.endpointmonitor.layer1;
 
-import com.sdasda7777.endpointmonitor.L01.DTO.MonitoredEndpointDTO;
+import com.sdasda7777.endpointmonitor.layer1.dto.MonitoredEndpointDTO;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.L02.Exceptions.InsufficientDataOwnershipException;
 import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidEndpointIdException;
