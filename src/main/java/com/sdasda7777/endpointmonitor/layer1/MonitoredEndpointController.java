@@ -1,11 +1,11 @@
 package com.sdasda7777.endpointmonitor.layer1;
 
-import com.sdasda7777.endpointmonitor.layer1.dto.MonitoredEndpointDTO;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
-import com.sdasda7777.endpointmonitor.L02.Exceptions.InsufficientDataOwnershipException;
-import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidEndpointIdException;
-import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidUserIdException;
 import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
+import com.sdasda7777.endpointmonitor.L02.misc.InsufficientDataOwnershipException;
+import com.sdasda7777.endpointmonitor.L02.misc.InvalidEndpointIdException;
+import com.sdasda7777.endpointmonitor.L02.misc.InvalidUserIdException;
+import com.sdasda7777.endpointmonitor.layer1.dto.MonitoredEndpointDTO;
 import com.sdasda7777.endpointmonitor.security.authentication.KeycloakUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -92,7 +92,7 @@ public class MonitoredEndpointController
 			);
 		}
 		else if (monitoredEndpoint.getUrl() == null
-				 || !monitoredEndpoint.validOrValidatableUrl())
+				 || !monitoredEndpoint.hasValidUrl())
 		{
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 											  "Endpoint url must be provided "
@@ -101,13 +101,11 @@ public class MonitoredEndpointController
 											  + "://address'"
 			);
 		}
-		else if (monitoredEndpoint.getMonitoringInterval() == null
-				 || monitoredEndpoint.getMonitoringInterval() < 1)
+		else if (monitoredEndpoint.getMonitoringInterval() == null)
 		{
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 											  "Monitoring interval must be "
-											  + "provided and be "
-											  + "larger than 0"
+											  + "provided"
 			);
 		}
 
@@ -154,22 +152,13 @@ public class MonitoredEndpointController
 			);
 		}
 		else if (monitoredEndpoint.getUrl() != null
-				 && !monitoredEndpoint.validOrValidatableUrl())
+				 && !monitoredEndpoint.hasValidUrl())
 		{
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 											  "If endpoint url is provided, it"
 											  + " must be in "
 											  + "format '(http|https|ftp)"
 											  + "://address'"
-			);
-		}
-		else if (monitoredEndpoint.getMonitoringInterval() != null
-				 && monitoredEndpoint.getMonitoringInterval() < 1)
-		{
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-											  "If monitoring interval is "
-											  + "provided, it must be "
-											  + "larger than 0"
 			);
 		}
 

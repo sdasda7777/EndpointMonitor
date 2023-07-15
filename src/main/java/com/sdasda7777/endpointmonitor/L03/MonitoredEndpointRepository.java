@@ -1,7 +1,7 @@
 package com.sdasda7777.endpointmonitor.L03;
 
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
+import com.sun.istack.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,12 +14,12 @@ import java.util.Optional;
 
 @Repository
 public interface MonitoredEndpointRepository extends JpaRepository<MonitoredEndpoint, Long> {
-    <S extends MonitoredEndpoint> S save(S monitoredEndpoint);
+    <S extends MonitoredEndpoint> S save(@NotNull S monitoredEndpoint);
 
     List<MonitoredEndpoint> findAll();
     Optional<MonitoredEndpoint> findById(Long id);
 
-    @Query("SELECT me FROM MonitoredEndpoint me WHERE me.owner.keycloakId = :id"
+    @Query("SELECT me FROM MonitoredEndpoint me WHERE me.owner.authorizationId = :id"
             + " ORDER BY me.id ASC")
     Collection<MonitoredEndpoint> getEndpointsByKeycloakId(@Param("id") String keycloakId);
 

@@ -1,52 +1,78 @@
 package com.sdasda7777.endpointmonitor.L02.Entities;
 
+import com.sdasda7777.endpointmonitor.L02.misc.UsedViaReflection;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * This entity represents user of the service.
+ * User may create new monitored endpoints, view, edit or delete their own
+ * endpoints, as well as view results of their monitoring.
+ * Keycloak's IDs are expected to be used as the authorizationId, but using
+ * the entity with different service shouldn't be an issue if values are
+ * still unique.
+ */
+
 @Entity
 @Table(name = "monitorUsers")
-public class MonitorUser {
+public class MonitorUser
+{
+	/**
+	 * Unique identifier of the MonitorUser entity
+	 */
+	@Id
+	@GeneratedValue
+	private Long id;
 
-    @Id
-    @GeneratedValue
-    Long id;
+	/**
+	 * Unique identifier in the authorization service
+	 */
+	@UsedViaReflection
+	@Column(unique = true)
+	private final String authorizationId;
 
-    String keycloakId;
+	/**
+	 * MonitoredEndpoints owned by given user
+	 */
+	@OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+	Collection<MonitoredEndpoint> monitoredEndpoints;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
-    Collection<MonitoredEndpoint> monitoredEndpoints;
+	/**
+	 * Empty constructor
+	 */
+	public MonitorUser()
+	{
+		this.authorizationId = null;
+		this.monitoredEndpoints = new ArrayList<>();
+	}
 
-    public MonitorUser(){
-        this.keycloakId = null;
-        this.monitoredEndpoints = new ArrayList<>();
-    }
+	/**
+	 * Filled constructor
+	 * @param authorizationId id of the user in the authorization service
+	 */
+	public MonitorUser(String authorizationId)
+	{
+		this.authorizationId = authorizationId;
+		this.monitoredEndpoints = new ArrayList<>();
+	}
 
-    public Long getId() {
-        return id;
-    }
+	/**
+	 * ID getter
+	 * @return unique entity identifier
+	 */
+	public Long getId()
+	{
+		return id;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /*
-    public String getKeycloakId() {
-        return keycloakId;
-    }
-    */
-
-    public void setKeycloakId(String username) {
-        this.keycloakId = username;
-    }
-
-    /*
-    public Collection<MonitoredEndpoint> getMonitoredEndpoints() {
-        return monitoredEndpoints;
-    }
-
-    public void setMonitoredEndpoints(Collection<MonitoredEndpoint> monitoredEndpoints) {
-        this.monitoredEndpoints = monitoredEndpoints;
-    }
-    */
+	/**
+	 * ID setter
+	 * @param id new unique entity identifier
+	 */
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
 }

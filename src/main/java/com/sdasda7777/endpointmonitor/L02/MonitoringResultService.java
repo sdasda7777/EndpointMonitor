@@ -3,11 +3,10 @@ package com.sdasda7777.endpointmonitor.L02;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.L02.Entities.MonitoringResult;
-import com.sdasda7777.endpointmonitor.L02.Exceptions.InsufficientDataOwnershipException;
-import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidEndpointIdException;
-import com.sdasda7777.endpointmonitor.L02.Exceptions.InvalidUserIdException;
+import com.sdasda7777.endpointmonitor.L02.misc.InsufficientDataOwnershipException;
+import com.sdasda7777.endpointmonitor.L02.misc.InvalidEndpointIdException;
+import com.sdasda7777.endpointmonitor.L02.misc.InvalidUserIdException;
 import com.sdasda7777.endpointmonitor.L03.MonitoringResultRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,14 +16,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class MonitoringResultService {
-    @Autowired
-    MonitoringResultRepository monitoringResultRepository;
+    final MonitoringResultRepository monitoringResultRepository;
 
-    @Autowired
-    MonitoredEndpointService monitoredEndpointService;
+    final MonitoredEndpointService monitoredEndpointService;
 
-    @Autowired
-    MonitorUserService monitorUserService;
+    final MonitorUserService monitorUserService;
 
     public MonitoringResultService(MonitoringResultRepository monitoringResultRepository,
                                    MonitoredEndpointService monitoredEndpointService,
@@ -47,7 +43,7 @@ public class MonitoringResultService {
         if(userOptional.isEmpty())
             throw new InvalidUserIdException(keycloakId);
 
-        if(userOptional.get().getId() != endpoint.get().getOwner().getId())
+        if(!userOptional.get().getId().equals(endpoint.get().getOwner().getId()))
             throw new InsufficientDataOwnershipException("");
 
         if(limitResults != null){
@@ -58,7 +54,7 @@ public class MonitoringResultService {
         }
     }
 
-    public MonitoringResult createMonitoringResult(MonitoringResult monitoringResult){
-        return monitoringResultRepository.save(monitoringResult);
+    public void createMonitoringResult(MonitoringResult monitoringResult){
+        monitoringResultRepository.save(monitoringResult);
     }
 }

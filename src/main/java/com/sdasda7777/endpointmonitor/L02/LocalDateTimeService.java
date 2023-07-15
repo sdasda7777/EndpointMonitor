@@ -1,6 +1,5 @@
 package com.sdasda7777.endpointmonitor.L02;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

@@ -1,148 +1,254 @@
 package com.sdasda7777.endpointmonitor.L02.Entities;
 
+import com.sdasda7777.endpointmonitor.L02.misc.UsedViaReflection;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
+
+/**
+ * This entity represents endpoint that is being monitored,
+ * or perhaps rather a request for an endpoint to be monitored,
+ * since distinct MonitoredEndpoints may monitor the same endpoint.
+ */
 
 @Entity
 @Table(name = "monitoredEndpoints")
-public class MonitoredEndpoint {
+public class MonitoredEndpoint
+{
 
-    @Id
-    @GeneratedValue
-    private Long id;
+	/**
+	 * Unique identifier of the endpoint
+	 */
+	@Id
+	@GeneratedValue
+	private Long id;
 
-    private String name;
+	/**
+	 * Name of the endpoint given by the user
+	 */
+	private String name;
 
+	/**
+	 * URL of the endpoint
+	 */
+	@Column(columnDefinition = "TEXT")
+	private String url;
 
-    @Column(columnDefinition="TEXT")
-    private String url;
-    @Column(columnDefinition = "TIMESTAMP")
-    private LocalDateTime creationDate;
-    @Column(columnDefinition = "TIMESTAMP")
-    private LocalDateTime lastCheckDate;
-    @Column(columnDefinition = "TIMESTAMP")
-    private LocalDateTime nextCheckDate;
-    private Integer monitoringInterval;
+	/**
+	 * Creation date of the entity
+	 */
+	@Column(columnDefinition = "TIMESTAMP")
+	private final LocalDateTime creationDate;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private MonitorUser owner;
+	/**
+	 * Date of the last check
+	 */
+	@Column(columnDefinition = "TIMESTAMP")
+	private LocalDateTime lastCheckDate;
 
-    @OneToMany(mappedBy = "monitoredEndpoint", cascade = CascadeType.ALL)
-    private Collection<MonitoringResult> monitoringResults;
+	/**
+	 * Date of the next check (accessed in the JPA Query)
+	 */
+	@UsedViaReflection
+	@Column(columnDefinition = "TIMESTAMP")
+	private LocalDateTime nextCheckDate;
 
+	/**
+	 * Interval of checks, in seconds
+	 */
+	private Integer monitoringInterval;
 
-    public MonitoredEndpoint(){
-        this.name = null;
-        this.url = null;
-        this.creationDate = null;
-        this.lastCheckDate = null;
-        this.nextCheckDate = null;
-        this.monitoringInterval = null;
-        this.owner = null;
-        this.monitoringResults = new ArrayList<>();
-    }
+	/**
+	 * Owner of the instance
+	 */
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "owner_id", nullable = false)
+	private MonitorUser owner;
 
-    public MonitoredEndpoint(String name, String url,
-                             LocalDateTime creationDate, LocalDateTime lastCheckDate,
-                             Integer monitoringInterval){
-        this.name = name;
-        this.url = url;
-        this.creationDate = creationDate;
-        this.lastCheckDate = lastCheckDate;
-        setMonitoringInterval(monitoringInterval);
+	/**
+	 * Empty constructor
+	 */
+	public MonitoredEndpoint()
+	{
+		this.name = null;
+		this.url = null;
+		this.creationDate = null;
+		this.lastCheckDate = null;
+		this.nextCheckDate = null;
+		this.monitoringInterval = null;
+		this.owner = null;
+	}
 
-        this.owner = null;
-        this.monitoringResults = new ArrayList<>();
-    }
+	/**
+	 * Constructor which sets all values, except for the owner
+	 *
+	 * @param name               name of the entity
+	 * @param url                address of the endpoint
+	 * @param creationDate       date of creation
+	 * @param monitoringInterval monitoring interval (in seconds)
+	 */
+	public MonitoredEndpoint(
+			String name,
+			String url,
+			LocalDateTime creationDate,
+			Integer monitoringInterval
+	)
+	{
+		this.name = name;
+		this.url = url;
+		this.creationDate = creationDate;
+		this.lastCheckDate = creationDate.minusSeconds(monitoringInterval);
+		setMonitoringInterval(monitoringInterval);
 
-    public Long getId() {
-        return id;
-    }
+		this.owner = null;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	/**
+	 * ID getter
+	 *
+	 * @return ID of the instance
+	 */
+	public Long getId()
+	{
+		return id;
+	}
 
-    public String getName() {
-        return name;
-    }
+	/**
+	 * ID setter
+	 *
+	 * @param id new ID
+	 */
+	public void setId(Long id)
+	{
+		this.id = id;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	/**
+	 * Name getter
+	 *
+	 * @return name given to the entity by the user
+	 */
+	public String getName()
+	{
+		return name;
+	}
 
-    public String getUrl() {
-        return url;
-    }
+	/**
+	 * Name setter
+	 *
+	 * @param name new name
+	 */
+	public void setName(String name)
+	{
+		this.name = name;
+	}
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+	/**
+	 * URL getter
+	 *
+	 * @return URL of the monitored endpoint
+	 */
+	public String getUrl()
+	{
+		return url;
+	}
 
-    public LocalDateTime getCreationDate() {
-        return creationDate;
-    }
+	/**
+	 * URL setter
+	 *
+	 * @param url new URL
+	 */
+	public void setUrl(String url)
+	{
+		this.url = url;
+	}
 
-    public void setCreationDate(LocalDateTime creationDate) {
-        this.creationDate = creationDate;
-    }
+	/**
+	 * Creation date getter
+	 *
+	 * @return creation date
+	 */
+	public LocalDateTime getCreationDate()
+	{
+		return creationDate;
+	}
 
-    public LocalDateTime getLastCheckDate() {
-        return lastCheckDate;
-    }
+	/**
+	 * Last check date getter
+	 *
+	 * @return last check date
+	 */
+	public LocalDateTime getLastCheckDate()
+	{
+		return lastCheckDate;
+	}
 
-    public void setLastCheckDate(LocalDateTime lastCheckDate) {
-        this.lastCheckDate = lastCheckDate;
-        if(monitoringInterval != null){
-            nextCheckDate = lastCheckDate.plusSeconds(monitoringInterval);
-        }
-    }
+	/**
+	 * Last check date setter
+	 *
+	 * @param lastCheckDate new last check date
+	 */
+	public void setLastCheckDate(LocalDateTime lastCheckDate)
+	{
+		this.lastCheckDate = lastCheckDate;
+		if (monitoringInterval != null)
+		{
+			nextCheckDate = lastCheckDate.plusSeconds(monitoringInterval);
+		}
+	}
 
-    /*
-    public LocalDateTime getNextCheckDate() {
-        return nextCheckDate;
-    }
-    */
+	/**
+	 * Monitoring interval getter
+	 *
+	 * @return monitoring interval
+	 */
+	public Integer getMonitoringInterval()
+	{
+		return monitoringInterval;
+	}
 
-    public Integer getMonitoringInterval() {
-        return monitoringInterval;
-    }
+	/**
+	 * Monitoring interval setter
+	 *
+	 * @param monitoringInterval new monitoring interval
+	 */
+	public void setMonitoringInterval(Integer monitoringInterval)
+	{
+		this.monitoringInterval = monitoringInterval;
+		if (lastCheckDate != null)
+		{
+			nextCheckDate = lastCheckDate.plusSeconds(monitoringInterval);
+		}
+	}
 
-    public void setMonitoringInterval(Integer monitoringInterval) {
-        this.monitoringInterval = monitoringInterval;
-        if(lastCheckDate != null){
-            nextCheckDate = lastCheckDate.plusSeconds(monitoringInterval);
-        }
-    }
+	/**
+	 * Owner getter
+	 *
+	 * @return MonitorUser that owns this instance
+	 */
+	public MonitorUser getOwner()
+	{
+		return owner;
+	}
 
-    public MonitorUser getOwner() {
-        return owner;
-    }
+	/**
+	 * Owner setter
+	 *
+	 * @param owner new owner
+	 */
+	public void setOwner(MonitorUser owner)
+	{
+		this.owner = owner;
+	}
 
-    public void setOwner(MonitorUser owner) {
-        this.owner = owner;
-    }
-
-    /*
-    public Collection<MonitoringResult> getMonitoringResults() {
-        return monitoringResults;
-    }
-
-    public void setMonitoringResults(Collection<MonitoringResult> monitoringResults) {
-        this.monitoringResults = monitoringResults;
-    }
-    */
-
-    public boolean validOrValidatableUrl() {
-        UrlValidator validator = new UrlValidator();
-        if (validator.isValid(url))
-            return true;
-        url = "https://" + url;
-        return validator.isValid(url);
-    }
+	/**
+	 * Determine whether held URL is valid
+	 *
+	 * @return true iff url is valid
+	 */
+	public boolean hasValidUrl()
+	{
+		return url != null && (new UrlValidator()).isValid(url);
+	}
 }

@@ -27,6 +27,16 @@ public class MonitoringResultDTO
 	private final LocalDateTime checkDate;
 
 	/**
+	 * ID of the monitored endpoint
+	 */
+	private final Long monitoredEndpointId;
+
+	/**
+	 * URL of the monitored endpoint
+	 */
+	private final String monitoredEndpointURL;
+
+	/**
 	 * <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP status code</a> of the endpoint response
 	 */
 	private final Integer resultStatusCode;
@@ -36,11 +46,6 @@ public class MonitoringResultDTO
 	 * <a href="https://en.wikipedia.org/wiki/HTTP_message_body">HTTP body<a/>) of the endpoint response
 	 */
 	private final String resultPayload;
-
-	/**
-	 * ID of the monitored endpoint
-	 */
-	private final Long monitoredEndpointId;
 
 	/**
 	 * Constructor for MonitoringResultDTO which automatically takes all
@@ -53,38 +58,42 @@ public class MonitoringResultDTO
 	{
 		this.id = monitoringResult.getId();
 		this.checkDate = monitoringResult.getCheckDate();
-		this.resultStatusCode = monitoringResult.getResultStatusCode();
-		this.resultPayload = monitoringResult.getResultPayload();
 		this.monitoredEndpointId =
 				monitoringResult.getMonitoredEndpoint().getId();
+		this.monitoredEndpointURL = monitoringResult.getMonitoredEndpointURL();
+		this.resultStatusCode = monitoringResult.getResultStatusCode();
+		this.resultPayload = monitoringResult.getResultPayload();
 	}
 
 	/**
 	 * Constructor for MonitoringResultDTO which takes relevant data as
 	 * arguments
 	 *
-	 * @param id                  id of the endpoint entity
-	 * @param checkDate           date when the monitoring was performed
+	 * @param id                   id of the endpoint entity
+	 * @param checkDate            date when the monitoring was performed
+	 * @param monitoredEndpointId  ID of the monitored endpoint entity
+	 * @param monitoredEndpointURL URL of the monitored endpoint
 	 * @param resultStatusCode
 	 * <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">HTTP status code</a>
-	 *                            of the endpoint response
-	 * @param resultPayload       payload (
-	 *                            <a href="https://en.wikipedia.org/wiki/HTTP_message_body">HTTP body<a/>) of the endpoint response
-	 * @param monitoredEndpointId ID of the monitored endpoint entity
+	 *                             of the endpoint response
+	 * @param resultPayload        payload (
+	 *                             <a href="https://en.wikipedia.org/wiki/HTTP_message_body">HTTP body<a/>) of the endpoint response
 	 */
 	public MonitoringResultDTO(
 			Long id,
 			LocalDateTime checkDate,
+			Long monitoredEndpointId,
+			String monitoredEndpointURL,
 			Integer resultStatusCode,
-			String resultPayload,
-			Long monitoredEndpointId
+			String resultPayload
 	)
 	{
 		this.id = id;
 		this.checkDate = checkDate;
+		this.monitoredEndpointId = monitoredEndpointId;
+		this.monitoredEndpointURL = monitoredEndpointURL;
 		this.resultStatusCode = resultStatusCode;
 		this.resultPayload = resultPayload;
-		this.monitoredEndpointId = monitoredEndpointId;
 	}
 
 	/**
@@ -105,6 +114,26 @@ public class MonitoringResultDTO
 	public LocalDateTime getCheckDate()
 	{
 		return checkDate;
+	}
+
+	/**
+	 * Endpoint entity ID getter
+	 *
+	 * @return ID of the endpoint entity which this result belongs to
+	 */
+	public Long getMonitoredEndpointId()
+	{
+		return monitoredEndpointId;
+	}
+
+	/**
+	 * Endpoint URL getter
+	 *
+	 * @return URL that was checked
+	 */
+	public String getMonitoredEndpointURL()
+	{
+		return monitoredEndpointURL;
 	}
 
 	/**
@@ -130,16 +159,6 @@ public class MonitoringResultDTO
 		return resultPayload;
 	}
 
-	/**
-	 * Endpoint entity ID
-	 *
-	 * @return ID of the endpoint entity which this result belongs to
-	 */
-	public Long getMonitoredEndpointId()
-	{
-		return monitoredEndpointId;
-	}
-
 
 	/**
 	 * equals - determines whether two objects are equivalent
@@ -155,9 +174,10 @@ public class MonitoringResultDTO
 		MonitoringResultDTO that = (MonitoringResultDTO) o;
 		return id.equals(that.id)
 			   && checkDate.equals(that.checkDate)
+			   && monitoredEndpointId.equals(that.monitoredEndpointId)
+			   && monitoredEndpointURL.equals(that.monitoredEndpointURL)
 			   && resultStatusCode.equals(that.resultStatusCode)
-			   && resultPayload.equals(that.resultPayload)
-			   && monitoredEndpointId.equals(that.monitoredEndpointId);
+			   && resultPayload.equals(that.resultPayload);
 	}
 
 	/**
@@ -177,7 +197,7 @@ public class MonitoringResultDTO
 	 *
 	 * @param results collection of results entities
 	 * @return collection of MonitoringResultDTOs describing provided result
-	 * entities
+	 * 		entities
 	 */
 	public static Collection<MonitoringResultDTO> convertMany(Collection<MonitoringResult> results)
 	{
