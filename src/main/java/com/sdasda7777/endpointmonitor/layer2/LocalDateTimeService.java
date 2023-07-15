@@ -1,4 +1,4 @@
-package com.sdasda7777.endpointmonitor.L02;
+package com.sdasda7777.endpointmonitor.layer2;
 
 import org.springframework.stereotype.Service;
 

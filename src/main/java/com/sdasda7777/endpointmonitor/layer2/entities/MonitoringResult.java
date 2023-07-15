@@ -1,6 +1,6 @@
-package com.sdasda7777.endpointmonitor.L02.Entities;
+package com.sdasda7777.endpointmonitor.layer2.entities;
 
-import com.sdasda7777.endpointmonitor.L02.misc.UsedViaReflection;
+import com.sdasda7777.endpointmonitor.layer2.misc.UsedViaReflection;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

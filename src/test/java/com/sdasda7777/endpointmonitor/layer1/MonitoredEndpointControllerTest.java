@@ -1,11 +1,11 @@
 package com.sdasda7777.endpointmonitor.layer1;
 
 import com.sdasda7777.endpointmonitor.layer1.dto.MonitoredEndpointDTO;
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
-import com.sdasda7777.endpointmonitor.L02.LocalDateTimeService;
-import com.sdasda7777.endpointmonitor.L02.MonitorUserService;
-import com.sdasda7777.endpointmonitor.L02.MonitoredEndpointService;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
+import com.sdasda7777.endpointmonitor.layer2.LocalDateTimeService;
+import com.sdasda7777.endpointmonitor.layer2.MonitorUserService;
+import com.sdasda7777.endpointmonitor.layer2.MonitoredEndpointService;
 import com.sdasda7777.endpointmonitor.L03.MonitorUserRepository;
 import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
 import org.junit.jupiter.api.Test;

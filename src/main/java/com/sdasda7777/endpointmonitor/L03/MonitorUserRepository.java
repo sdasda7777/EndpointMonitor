@@ -1,6 +1,6 @@
 package com.sdasda7777.endpointmonitor.L03;
 
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

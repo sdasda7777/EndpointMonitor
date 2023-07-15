@@ -1,6 +1,6 @@
 package com.sdasda7777.endpointmonitor.layer1.dto;
 
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitoringResult;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.Collection;
  * This is a
  * <a href="https://en.wikipedia.org/wiki/Data_transfer_object">DTO</a>
  * version of the
- * {@link com.sdasda7777.endpointmonitor.L02.Entities.MonitoringResult} entity
+ * {@link com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult} entity
  */
 
 public class MonitoringResultDTO

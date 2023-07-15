@@ -1,10 +1,10 @@
 package com.sdasda7777.endpointmonitor.layer1;
 
 import com.sdasda7777.endpointmonitor.layer1.dto.MonitoringResultDTO;
-import com.sdasda7777.endpointmonitor.L02.misc.InsufficientDataOwnershipException;
-import com.sdasda7777.endpointmonitor.L02.misc.InvalidEndpointIdException;
-import com.sdasda7777.endpointmonitor.L02.misc.InvalidUserIdException;
-import com.sdasda7777.endpointmonitor.L02.MonitoringResultService;
+import com.sdasda7777.endpointmonitor.layer2.misc.InsufficientDataOwnershipException;
+import com.sdasda7777.endpointmonitor.layer2.misc.InvalidEndpointIdException;
+import com.sdasda7777.endpointmonitor.layer2.misc.InvalidUserIdException;
+import com.sdasda7777.endpointmonitor.layer2.MonitoringResultService;
 import com.sdasda7777.endpointmonitor.security.authentication.KeycloakUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;

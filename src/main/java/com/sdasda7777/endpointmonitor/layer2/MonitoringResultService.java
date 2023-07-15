@@ -1,11 +1,11 @@
-package com.sdasda7777.endpointmonitor.L02;
+package com.sdasda7777.endpointmonitor.layer2;
 
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitorUser;
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitoredEndpoint;
-import com.sdasda7777.endpointmonitor.L02.Entities.MonitoringResult;
-import com.sdasda7777.endpointmonitor.L02.misc.InsufficientDataOwnershipException;
-import com.sdasda7777.endpointmonitor.L02.misc.InvalidEndpointIdException;
-import com.sdasda7777.endpointmonitor.L02.misc.InvalidUserIdException;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
+import com.sdasda7777.endpointmonitor.layer2.misc.InsufficientDataOwnershipException;
+import com.sdasda7777.endpointmonitor.layer2.misc.InvalidEndpointIdException;
+import com.sdasda7777.endpointmonitor.layer2.misc.InvalidUserIdException;
 import com.sdasda7777.endpointmonitor.L03.MonitoringResultRepository;
 import org.springframework.stereotype.Service;
 
