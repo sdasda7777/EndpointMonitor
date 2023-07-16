@@ -5,7 +5,7 @@ import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.layer2.misc.InsufficientDataOwnershipException;
 import com.sdasda7777.endpointmonitor.layer2.misc.InvalidEndpointIdException;
 import com.sdasda7777.endpointmonitor.layer2.misc.InvalidUserIdException;
-import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
+import com.sdasda7777.endpointmonitor.layer3.MonitoredEndpointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

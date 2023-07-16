@@ -1,7 +1,7 @@
 package com.sdasda7777.endpointmonitor.layer2;
 
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
-import com.sdasda7777.endpointmonitor.L03.MonitorUserRepository;
+import com.sdasda7777.endpointmonitor.layer3.MonitorUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

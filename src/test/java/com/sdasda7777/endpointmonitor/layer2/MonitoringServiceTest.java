@@ -1,8 +1,8 @@
 package com.sdasda7777.endpointmonitor.layer2;
 
-import com.sdasda7777.endpointmonitor.L03.MonitorUserRepository;
-import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
-import com.sdasda7777.endpointmonitor.L03.MonitoringResultRepository;
+import com.sdasda7777.endpointmonitor.layer3.MonitorUserRepository;
+import com.sdasda7777.endpointmonitor.layer3.MonitoredEndpointRepository;
+import com.sdasda7777.endpointmonitor.layer3.MonitoringResultRepository;
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;

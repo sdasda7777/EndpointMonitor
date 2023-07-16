@@ -1,6 +1,6 @@
 package com.sdasda7777.endpointmonitor.layer2;
 
-import com.sdasda7777.endpointmonitor.L03.MonitoringResultRepository;
+import com.sdasda7777.endpointmonitor.layer3.MonitoringResultRepository;
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
@@ -9,7 +9,6 @@ import com.sdasda7777.endpointmonitor.layer2.misc.InvalidEndpointIdException;
 import com.sdasda7777.endpointmonitor.layer2.misc.InvalidUserIdException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;

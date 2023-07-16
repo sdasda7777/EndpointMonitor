@@ -1,4 +1,4 @@
-package com.sdasda7777.endpointmonitor.L03;
+package com.sdasda7777.endpointmonitor.layer3;
 
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
 import org.springframework.data.jpa.repository.JpaRepository;
