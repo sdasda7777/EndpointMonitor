@@ -22,41 +22,44 @@ public class MonitoredEndpoint
 	 */
 	@Id
 	@GeneratedValue
+	@Column(nullable = false)
 	private Long id;
 
 	/**
 	 * Name of the endpoint given by the user
 	 */
+	@Column(nullable = false)
 	private String name;
 
 	/**
 	 * URL of the endpoint
 	 */
-	@Column(columnDefinition = "TEXT")
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private String url;
 
 	/**
 	 * Creation date of the entity
 	 */
-	@Column(columnDefinition = "TIMESTAMP")
+	@Column(nullable = false, columnDefinition = "TIMESTAMP")
 	private final LocalDateTime creationDate;
 
 	/**
 	 * Date of the last check
 	 */
-	@Column(columnDefinition = "TIMESTAMP")
+	@Column(nullable = false, columnDefinition = "TIMESTAMP")
 	private LocalDateTime lastCheckDate;
 
 	/**
 	 * Date of the next check (accessed in the JPA Query)
 	 */
 	@UsedViaReflection
-	@Column(columnDefinition = "TIMESTAMP")
+	@Column(nullable = false, columnDefinition = "TIMESTAMP")
 	private LocalDateTime nextCheckDate;
 
 	/**
 	 * Interval of checks, in seconds
 	 */
+	@Column(nullable = false)
 	private Integer monitoringInterval;
 
 	/**

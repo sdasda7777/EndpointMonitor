@@ -50,7 +50,7 @@ public class MonitoredEndpointService
 			String keycloakId
 	)
 	{
-		return monitoredEndpointRepository.getEndpointsByKeycloakId(keycloakId);
+		return monitoredEndpointRepository.getEndpointsByAuthId(keycloakId);
 	}
 
 	public MonitoredEndpoint createMonitoredEndpoint(
@@ -102,13 +102,9 @@ public class MonitoredEndpointService
 		return monitoredEndpointRepository.save(currentEndpoint);
 	}
 
-	public void updateEndpointLastCheck(
-			MonitoredEndpoint endpoint, LocalDateTime checkDate
-	)
-	{
-		monitoredEndpointRepository.updateEndpointLastCheck(endpoint,
-															checkDate
-		);
+	public void updateEndpointLastCheck(MonitoredEndpoint endpoint, LocalDateTime checkDate) {
+		endpoint.setLastCheckDate(checkDate);
+		monitoredEndpointRepository.save(endpoint);
 	}
 
 	public MonitoredEndpoint deleteEndpoint(

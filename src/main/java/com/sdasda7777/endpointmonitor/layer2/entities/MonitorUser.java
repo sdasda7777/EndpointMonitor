@@ -24,13 +24,14 @@ public class MonitorUser
 	 */
 	@Id
 	@GeneratedValue
+	@Column(nullable = false)
 	private Long id;
 
 	/**
 	 * Unique identifier in the authorization service
 	 */
 	@UsedViaReflection
-	@Column(unique = true)
+	@Column(nullable = false, unique = true)
 	private final String authorizationId;
 
 	/**

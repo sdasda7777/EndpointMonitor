@@ -18,7 +18,7 @@ public class MonitorUserService {
     }
 
     public Optional<MonitorUser> getUserByKeycloakId(String username) {
-        Collection<MonitorUser> users = monitorUserRepository.findByKeycloakId(username);
+        Collection<MonitorUser> users = monitorUserRepository.findByAuthorizationId(username);
         return (users.size() == 1 ? users.stream().findFirst() : Optional.empty());
     }
 

@@ -1,19 +1,21 @@
 package com.sdasda7777.endpointmonitor.layer1;
 
-import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
-import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
-import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
-import com.sdasda7777.endpointmonitor.layer2.LocalDateTimeService;
-import com.sdasda7777.endpointmonitor.layer2.MonitorUserService;
-import com.sdasda7777.endpointmonitor.layer2.MonitoredEndpointService;
-import com.sdasda7777.endpointmonitor.layer2.MonitoringResultService;
 import com.sdasda7777.endpointmonitor.L03.MonitorUserRepository;
 import com.sdasda7777.endpointmonitor.L03.MonitoredEndpointRepository;
 import com.sdasda7777.endpointmonitor.L03.MonitoringResultRepository;
 import com.sdasda7777.endpointmonitor.layer1.dto.MonitoringResultDTO;
+import com.sdasda7777.endpointmonitor.layer2.LocalDateTimeService;
+import com.sdasda7777.endpointmonitor.layer2.MonitorUserService;
+import com.sdasda7777.endpointmonitor.layer2.MonitoredEndpointService;
+import com.sdasda7777.endpointmonitor.layer2.MonitoringResultService;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitorUser;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.ThrowsException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.jmx.access.InvalidInvocationException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -124,11 +126,11 @@ class MonitoringResultControllerTest
 		MonitorUserRepository monitorUserRepository = Mockito.mock(
 				MonitorUserRepository.class, defaultAnswer);
 		Mockito.doReturn(List.of(monitorUser1)).when(
-				monitorUserRepository).findByKeycloakId("known_keycloak_id_1");
+				monitorUserRepository).findByAuthorizationId("known_keycloak_id_1");
 		Mockito.doReturn(List.of(monitorUser2)).when(
-				monitorUserRepository).findByKeycloakId("known_keycloak_id_2");
+				monitorUserRepository).findByAuthorizationId("known_keycloak_id_2");
 		Mockito.doReturn(Collections.emptyList()).when(
-				monitorUserRepository).findByKeycloakId("unknown_keycloak_id");
+				monitorUserRepository).findByAuthorizationId("unknown_keycloak_id");
 
 		LocalDateTimeService localDateTimeService = Mockito.mock(
 				LocalDateTimeService.class, defaultAnswer);
@@ -144,7 +146,22 @@ class MonitoringResultControllerTest
 				MonitoringResultRepository.class, defaultAnswer);
 		Mockito.doReturn(new ArrayList<>(
 				Arrays.asList(monitoringResult2, monitoringResult1))).when(
-				monitoringResultRepository).getAllForEndpoint(45L);
+				monitoringResultRepository).getAllForEndpoint(45L,
+															  Pageable.unpaged()
+		);
+		Mockito.doReturn(
+				new ArrayList<>(List.of(monitoringResult2))).when(
+				monitoringResultRepository).getAllForEndpoint(45L,
+															  PageRequest.of(0,
+																			 1)
+		);
+		Mockito.doReturn(
+				new ArrayList<>(
+						Arrays.asList(monitoringResult2, monitoringResult1))).when(
+				monitoringResultRepository).getAllForEndpoint(45L,
+															  PageRequest.of(0,
+																			 200)
+		);
 
 		MonitoringResultService monitoringResultService =
 				new MonitoringResultService(
@@ -278,7 +295,7 @@ class MonitoringResultControllerTest
 
 		// Known user with limit smaller than result count
 		ArrayList<MonitoringResultDTO> result5 = new ArrayList<>(
-				monitoringResultController.getMonitoringResults(45L, 1L,
+				monitoringResultController.getMonitoringResults(45L, 1,
 																request4
 				));
 		assertEquals(1, result5.size());
@@ -299,7 +316,7 @@ class MonitoringResultControllerTest
 
 		// Known user with limit larger than result count
 		ArrayList<MonitoringResultDTO> result6 = new ArrayList<>(
-				monitoringResultController.getMonitoringResults(45L, 200L,
+				monitoringResultController.getMonitoringResults(45L, 200,
 																request4
 				));
 		assertEquals(2, result6.size());

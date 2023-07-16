@@ -2,14 +2,13 @@ package com.sdasda7777.endpointmonitor.layer2;
 
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.io.IOException;
 import java.net.ConnectException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
@@ -23,69 +22,63 @@ public class MonitoringService
 
 	private class EndpointCheckWorkerThread implements Runnable
 	{
+		private final InternetRequestService internetRequestService;
 		private final MonitoredEndpoint endpoint;
 
-		public EndpointCheckWorkerThread(MonitoredEndpoint endpoint)
+		public EndpointCheckWorkerThread(
+				InternetRequestService internetRequestService,
+				MonitoredEndpoint endpoint
+		)
 		{
+			this.internetRequestService = internetRequestService;
 			this.endpoint = endpoint;
 		}
 
 		@Override
 		public void run()
 		{
-			try
-			{
-				MonitoringResult status = checkStatus(endpoint);
-				monitoringResultService.createMonitoringResult(status);
-				monitoredEndpointService.updateEndpointLastCheck(endpoint,
-																 status.getCheckDate()
-				);
-			}
-			catch (RuntimeException e)
-			{
-				// Can't actually do anything here? Rethink.
-			}
-		}
+			MonitoringResult status;
 
-		static MonitoringResult checkStatus(MonitoredEndpoint endpoint)
-		{
 			String url = endpoint.getUrl();
 			LocalDateTime requestTime = LocalDateTime.now();
 			try
 			{
-				HttpClient client = HttpClient.newHttpClient();
-				HttpRequest request = HttpRequest.newBuilder().uri(
-						URI.create(url)).header("accept",
-												"application/json"
-				).build();
+				HttpResponse<String> response =
+						internetRequestService.makeRequest(
+						url);
 
-				HttpResponse<String> response = client.send(request,
-															HttpResponse.BodyHandlers.ofString()
-				);
-
-				return new MonitoringResult(requestTime,
-											endpoint, url,
-											response.statusCode(),
-											response.body()
+				status = new MonitoringResult(requestTime, endpoint, url,
+											  response.statusCode(),
+											  response.body()
 				);
 			}
 			catch (ConnectException c)
 			{
-				return new MonitoringResult(requestTime,
-											endpoint, url,
-											599,
-											"Connection to server hosting URL '"
-											+ endpoint.getUrl()
-											+ "' (if such server exists) could not be established."
+				status = new MonitoringResult(requestTime, endpoint, url, 599,
+											  "Connection to server hosting "
+											  + "URL '"
+											  + endpoint.getUrl()
+											  + "' (if such server exists) "
+											  + "could"
+											  + " not be established."
 				);
 			}
 			catch (Exception e)
 			{
-				throw new RuntimeException(e);
+				// exception in a child thread doesn't fail a test, FYI
+				return;
 			}
+
+			monitoringResultService.createMonitoringResult(status);
+			endpoint.setLastCheckDate(status.getCheckDate());
+			monitoredEndpointService.updateEndpointLastCheck(endpoint,
+															 status.getCheckDate()
+			);
 		}
 	}
 
+	final Integer threading;
+	final InternetRequestService internetRequestService;
 	final MonitoredEndpointService monitoredEndpointService;
 
 	final MonitoringResultService monitoringResultService;
@@ -93,23 +86,32 @@ public class MonitoringService
 	ExecutorService executor;
 
 	public MonitoringService(
+			@Value("${endpointMonitor.thread-count}") Integer threading,
+			InternetRequestService internetRequestService,
 			MonitoredEndpointService monitoredEndpointService,
 			MonitoringResultService monitoringResultService
 	)
 	{
+		this.threading = threading;
+		this.internetRequestService = internetRequestService;
 		this.monitoredEndpointService = monitoredEndpointService;
 		this.monitoringResultService = monitoringResultService;
 		this.executor = Executors.newFixedThreadPool(
-				Runtime.getRuntime().availableProcessors());
+				threading != null && threading > 0
+				? threading
+				: Runtime.getRuntime().availableProcessors());
 	}
 
 	@Scheduled(fixedDelay = 1000)
 	public void checkEndpoints()
 	{
 		for (MonitoredEndpoint endpoint :
-                monitoredEndpointService.getRequiringUpdate())
+				monitoredEndpointService.getRequiringUpdate())
 		{
-			executor.execute(new EndpointCheckWorkerThread(endpoint));
+			executor.execute(
+					new EndpointCheckWorkerThread(internetRequestService,
+												  endpoint
+					));
 		}
 	}
 
@@ -118,6 +120,8 @@ public class MonitoringService
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
 		executor = Executors.newFixedThreadPool(
-				Runtime.getRuntime().availableProcessors());
+				threading != null && threading > 0
+				? threading
+				: Runtime.getRuntime().availableProcessors());
 	}
 }

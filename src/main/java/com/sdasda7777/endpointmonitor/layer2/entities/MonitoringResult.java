@@ -20,12 +20,13 @@ public class MonitoringResult
 	 */
 	@Id
 	@GeneratedValue
+	@Column(nullable = false)
 	private Long id;
 
 	/**
 	 * Date when the monitoring occurred
 	 */
-	@Column(columnDefinition = "TIMESTAMP")
+	@Column(nullable = false, columnDefinition = "TIMESTAMP")
 	private final LocalDateTime checkDate;
 
 	/**
@@ -39,19 +40,21 @@ public class MonitoringResult
 	/**
 	 * Monitored Endpoint URL (since values in monitoredEndpoint may change over time)
 	 */
+	@Column(nullable = false)
 	private final String monitoredEndpointURL;
 
 	/**
 	 * <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">
 	 * HTTP status code</a> of the result
 	 */
+	@Column(nullable = false)
 	private final Integer resultStatusCode;
 
 	/**
 	 * Payload (<a href="https://en.wikipedia.org/wiki/HTTP_message_body">
 	 * HTTP body<a/>) of the endpoint response
 	 */
-	@Column(columnDefinition = "TEXT")
+	@Column(nullable = false, columnDefinition = "TEXT")
 	private final String resultPayload;
 
 	/**

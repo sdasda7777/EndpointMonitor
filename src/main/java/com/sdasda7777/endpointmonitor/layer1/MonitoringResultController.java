@@ -54,7 +54,7 @@ public class MonitoringResultController
 	@GetMapping("{monitoredEndpointId}")
 	public Collection<MonitoringResultDTO> getMonitoringResults(
 			@PathVariable(name = "monitoredEndpointId") Long monitoredEndpointId,
-			@RequestParam(name = "limit", required = false) Long limitResults,
+			@RequestParam(name = "limit", required = false) Integer limitResults,
 			HttpServletRequest request
 	)
 	{
