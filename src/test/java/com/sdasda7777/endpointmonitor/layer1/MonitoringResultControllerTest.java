@@ -313,6 +313,9 @@ class MonitoringResultControllerTest
 		assertEquals(monitoringResultDTO2.getMonitoredEndpointId(),
 					 result5DTO.getMonitoredEndpointId()
 		);
+		assertEquals(monitoringResultDTO2.getMonitoredEndpointURL(),
+					 result5DTO.getMonitoredEndpointURL()
+		);
 
 		// Known user with limit larger than result count
 		ArrayList<MonitoringResultDTO> result6 = new ArrayList<>(

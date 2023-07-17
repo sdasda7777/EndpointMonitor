@@ -45,16 +45,18 @@ public class MonitoringResult
 
 	/**
 	 * <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">
-	 * HTTP status code</a> of the result
+	 * HTTP status code</a> of the result.
+	 * Value of null means server could not be reached.
 	 */
-	@Column(nullable = false)
+	@Column()
 	private final Integer resultStatusCode;
 
 	/**
 	 * Payload (<a href="https://en.wikipedia.org/wiki/HTTP_message_body">
-	 * HTTP body<a/>) of the endpoint response
+	 * HTTP body<a/>) of the endpoint response.
+	 * Value of null means server could not be reached.
 	 */
-	@Column(nullable = false, columnDefinition = "TEXT")
+	@Column(columnDefinition = "TEXT")
 	private final String resultPayload;
 
 	/**
@@ -88,6 +90,8 @@ public class MonitoringResult
 		this.checkDate = checkDate;
 		this.monitoredEndpoint = monitoredEndpoint;
 		this.monitoredEndpointURL = monitoredEndpointURL;
+		assert((resultStatusCode == null)
+			   == (resultPayload == null));
 		this.resultStatusCode = resultStatusCode;
 		this.resultPayload = resultPayload;
 	}

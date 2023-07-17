@@ -35,6 +35,7 @@ public class MonitoringService
 		}
 
 		@Override
+		// uncaught exception in a child thread doesn't fail a test
 		public void run()
 		{
 			MonitoringResult status;
@@ -54,18 +55,11 @@ public class MonitoringService
 			}
 			catch (ConnectException c)
 			{
-				status = new MonitoringResult(requestTime, endpoint, url, 599,
-											  "Connection to server hosting "
-											  + "URL '"
-											  + endpoint.getUrl()
-											  + "' (if such server exists) "
-											  + "could"
-											  + " not be established."
-				);
+				status = new MonitoringResult(requestTime, endpoint, url, null,
+											  null);
 			}
-			catch (Exception e)
+			catch (IOException | InterruptedException e)
 			{
-				// exception in a child thread doesn't fail a test, FYI
 				return;
 			}
 
@@ -77,13 +71,13 @@ public class MonitoringService
 		}
 	}
 
-	final Integer threading;
-	final InternetRequestService internetRequestService;
-	final MonitoredEndpointService monitoredEndpointService;
+	private final Integer threading;
+	private final InternetRequestService internetRequestService;
+	private final MonitoredEndpointService monitoredEndpointService;
 
-	final MonitoringResultService monitoringResultService;
+	private final MonitoringResultService monitoringResultService;
 
-	ExecutorService executor;
+	private ExecutorService executor;
 
 	public MonitoringService(
 			@Value("${endpointMonitor.thread-count}") Integer threading,
