@@ -57,7 +57,7 @@ public class MonitoredEndpointController
 		try
 		{
 			return MonitoredEndpointDTO.convertMany(
-					monitoredEndpointService.getMonitoredEndpointsByKeycloakId(
+					monitoredEndpointService.getMonitoredEndpointsByAuthId(
 							KeycloakUserService.getKeycloakId(request)));
 		}
 		catch (AuthenticationCredentialsNotFoundException e)

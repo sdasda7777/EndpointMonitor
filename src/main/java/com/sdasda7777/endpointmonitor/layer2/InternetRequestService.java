@@ -8,11 +8,23 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+/**
+ * This service abstracts creation of HTTP request.
+ * That allows for better testability of MonitoringService, which uses it.
+ */
+
 @Service
 public class InternetRequestService
 {
 	public InternetRequestService(){}
 
+	/**
+	 * Make an HTTP request to given address
+	 * @param url address to make request to
+	 * @return response
+	 * @throws IOException same as HttpClient.send()
+	 * @throws InterruptedException same as HttpClient.send()
+	 */
 	public HttpResponse<String> makeRequest(String url) throws IOException,
 			InterruptedException
 	{

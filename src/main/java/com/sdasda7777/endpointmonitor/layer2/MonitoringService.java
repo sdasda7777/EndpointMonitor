@@ -15,16 +15,37 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Service which routinely checks for endpoints requiring status update,
+ * and updates them using multiple threads (thread pool size can be set
+ * in application.properties using endpointMonitor.thread-count).
+ */
+
 @Configuration
 @EnableScheduling
 public class MonitoringService
 {
-
+	/**
+	 * Class representing check task to fulfill.
+	 * Instances are created by MonitoringService,
+	 * passed to the thread pool, executed by it.
+	 */
 	private class EndpointCheckWorkerThread implements Runnable
 	{
+		/**
+		 * Service for request creation
+		 */
 		private final InternetRequestService internetRequestService;
+		/**
+		 * Endpoint to check on
+		 */
 		private final MonitoredEndpoint endpoint;
 
+		/**
+		 *
+		 * @param internetRequestService service for request creation
+		 * @param endpoint endpoint to check on
+		 */
 		public EndpointCheckWorkerThread(
 				InternetRequestService internetRequestService,
 				MonitoredEndpoint endpoint
@@ -34,6 +55,9 @@ public class MonitoringService
 			this.endpoint = endpoint;
 		}
 
+		/**
+		 * Check the status, save result
+		 */
 		@Override
 		// uncaught exception in a child thread doesn't fail a test
 		public void run()
@@ -71,14 +95,37 @@ public class MonitoringService
 		}
 	}
 
+	/**
+	 * Thread pool size to use
+	 */
 	private final Integer threading;
+
+	/**
+	 * Service for creation of requests, passed to individual tasks
+	 */
 	private final InternetRequestService internetRequestService;
+
+	/**
+	 * Monitored Endpoint service for querying of endpoints requiring update
+	 */
 	private final MonitoredEndpointService monitoredEndpointService;
 
+	/**
+	 * Monitoring Results service for saving of new results
+	 */
 	private final MonitoringResultService monitoringResultService;
 
+	/**
+	 * Executor of check tasks
+	 */
 	private ExecutorService executor;
 
+	/**
+	 * @param threading number of threads to use
+	 * @param internetRequestService service for creation of requests
+	 * @param monitoredEndpointService service for querying of endpoints requiring update
+	 * @param monitoringResultService service for saving of new results
+	 */
 	public MonitoringService(
 			@Value("${endpointMonitor.thread-count}") Integer threading,
 			InternetRequestService internetRequestService,
@@ -86,16 +133,16 @@ public class MonitoringService
 			MonitoringResultService monitoringResultService
 	)
 	{
-		this.threading = threading;
 		this.internetRequestService = internetRequestService;
 		this.monitoredEndpointService = monitoredEndpointService;
 		this.monitoringResultService = monitoringResultService;
-		this.executor = Executors.newFixedThreadPool(
-				threading != null && threading > 0
-				? threading
-				: Runtime.getRuntime().availableProcessors());
+		this.threading = (threading != null && threading > 0 ? threading : Runtime.getRuntime().availableProcessors());
+		this.executor = Executors.newFixedThreadPool(this.threading);
 	}
 
+	/**
+	 * Schedule check of all endpoints requiring update
+	 */
 	@Scheduled(fixedDelay = 1000)
 	public void checkEndpoints()
 	{
@@ -109,13 +156,14 @@ public class MonitoringService
 		}
 	}
 
+	/**
+	 * Await termination of all currently running check tasks
+	 * @throws InterruptedException
+	 */
 	public void awaitEndpointsChecked() throws InterruptedException
 	{
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.SECONDS);
-		executor = Executors.newFixedThreadPool(
-				threading != null && threading > 0
-				? threading
-				: Runtime.getRuntime().availableProcessors());
+		executor = Executors.newFixedThreadPool(this.threading);
 	}
 }
