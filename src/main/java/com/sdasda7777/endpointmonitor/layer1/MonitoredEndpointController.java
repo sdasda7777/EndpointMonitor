@@ -1,11 +1,11 @@
 package com.sdasda7777.endpointmonitor.layer1;
 
-import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
+import com.sdasda7777.endpointmonitor.layer1.dto.MonitoredEndpointDTO;
 import com.sdasda7777.endpointmonitor.layer2.MonitoredEndpointService;
+import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.layer2.misc.InsufficientDataOwnershipException;
 import com.sdasda7777.endpointmonitor.layer2.misc.InvalidEndpointIdException;
 import com.sdasda7777.endpointmonitor.layer2.misc.InvalidUserIdException;
-import com.sdasda7777.endpointmonitor.layer1.dto.MonitoredEndpointDTO;
 import com.sdasda7777.endpointmonitor.security.authentication.KeycloakUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -84,8 +84,8 @@ public class MonitoredEndpointController
 	)
 	{
 		// Validate received value
-		if (monitoredEndpoint.getName() == null
-			|| monitoredEndpoint.getName().isEmpty())
+		if (monitoredEndpoint.getName() == null || monitoredEndpoint.getName()
+																	.isEmpty())
 		{
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 											  "Endpoint name must be provided"
@@ -101,11 +101,12 @@ public class MonitoredEndpointController
 											  + "://address'"
 			);
 		}
-		else if (monitoredEndpoint.getMonitoringInterval() == null)
+		else if (monitoredEndpoint.getMonitoringInterval() == null
+				 || monitoredEndpoint.getMonitoringInterval() < 0)
 		{
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 											  "Monitoring interval must be "
-											  + "provided"
+											  + "provided and be non-negative"
 			);
 		}
 
@@ -143,8 +144,8 @@ public class MonitoredEndpointController
 	)
 	{
 		// Validate received endpoint value
-		if (monitoredEndpoint.getName() != null
-			&& monitoredEndpoint.getName().isEmpty())
+		if (monitoredEndpoint.getName() != null && monitoredEndpoint.getName()
+																	.isEmpty())
 		{
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 											  "If endpoint name is provided, "
@@ -159,6 +160,15 @@ public class MonitoredEndpointController
 											  + " must be in "
 											  + "format '(http|https|ftp)"
 											  + "://address'"
+			);
+		}
+		else if (monitoredEndpoint.getMonitoringInterval() != null
+				 && monitoredEndpoint.getMonitoringInterval() < 0)
+		{
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+											  "If monitoring interval is "
+											  + "provided, it must be "
+											  + "non-negative"
 			);
 		}
 
