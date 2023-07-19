@@ -22,8 +22,9 @@ class InternetRequestServiceTest
 	void testRequestIsMade()
 	{
 		// Setup
-		var defaultAnswer = new ThrowsException(new InvalidInvocationException(
-				"Inappropriate usage of mocked object"));
+		ThrowsException defaultAnswer = new ThrowsException(
+				new InvalidInvocationException(
+						"Inappropriate usage of mocked object"));
 
 		MockedStatic<HttpClient> httpClientMockedStatic = Mockito.mockStatic(
 				HttpClient.class);

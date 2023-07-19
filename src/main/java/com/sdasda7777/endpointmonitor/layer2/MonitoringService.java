@@ -42,9 +42,8 @@ public class MonitoringService
 		private final MonitoredEndpoint endpoint;
 
 		/**
-		 *
 		 * @param internetRequestService service for request creation
-		 * @param endpoint endpoint to check on
+		 * @param endpoint               endpoint to check on
 		 */
 		public EndpointCheckWorkerThread(
 				InternetRequestService internetRequestService,
@@ -80,7 +79,8 @@ public class MonitoringService
 			catch (ConnectException c)
 			{
 				status = new MonitoringResult(requestTime, endpoint, url, null,
-											  null);
+											  null
+				);
 			}
 			catch (IOException | InterruptedException e)
 			{
@@ -121,10 +121,11 @@ public class MonitoringService
 	private ExecutorService executor;
 
 	/**
-	 * @param threading number of threads to use
-	 * @param internetRequestService service for creation of requests
-	 * @param monitoredEndpointService service for querying of endpoints requiring update
-	 * @param monitoringResultService service for saving of new results
+	 * @param threading                number of threads to use
+	 * @param internetRequestService   service for creation of requests
+	 * @param monitoredEndpointService service for querying of endpoints
+	 *                                    requiring update
+	 * @param monitoringResultService  service for saving of new results
 	 */
 	public MonitoringService(
 			@Value("${endpointMonitor.thread-count}") Integer threading,
@@ -136,8 +137,15 @@ public class MonitoringService
 		this.internetRequestService = internetRequestService;
 		this.monitoredEndpointService = monitoredEndpointService;
 		this.monitoringResultService = monitoringResultService;
-		this.threading = (threading != null && threading > 0 ? threading : Runtime.getRuntime().availableProcessors());
+		this.threading = (threading != null && threading > 0
+						  ? threading
+						  : Runtime.getRuntime().availableProcessors());
 		this.executor = Executors.newFixedThreadPool(this.threading);
+	}
+
+	public Integer getThreading()
+	{
+		return this.threading;
 	}
 
 	/**
@@ -158,6 +166,7 @@ public class MonitoringService
 
 	/**
 	 * Await termination of all currently running check tasks
+	 *
 	 * @throws InterruptedException
 	 */
 	public void awaitEndpointsChecked() throws InterruptedException

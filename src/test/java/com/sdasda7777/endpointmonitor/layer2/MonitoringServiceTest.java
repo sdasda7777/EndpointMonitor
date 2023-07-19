@@ -6,6 +6,7 @@ import com.sdasda7777.endpointmonitor.layer2.entities.MonitoringResult;
 import com.sdasda7777.endpointmonitor.layer3.MonitorUserRepository;
 import com.sdasda7777.endpointmonitor.layer3.MonitoredEndpointRepository;
 import com.sdasda7777.endpointmonitor.layer3.MonitoringResultRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -25,44 +26,54 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ActiveProfiles("test")
-//@TestPropertySource(properties = {"endpointMonitor.thread-count=1"})
 public class MonitoringServiceTest
 {
-	@Test
-	void standardFlowTest()
+	private ArrayList<MonitoringResult> monitoringResultsList;
+
+	private InternetRequestService internetRequestService;
+	private MonitoredEndpointService monitoredEndpointService;
+	private MonitoringResultService monitoringResultService;
+
+	/**
+	 * Set up member variables for test purposes
+	 */
+	@BeforeEach
+	void setup()
 	{
-		var defaultAnswer = new ThrowsException(new InvalidInvocationException(
-				"Inappropriate usage of mocked object"));
+		// variables common to the tests
+		ThrowsException defaultAnswer = new ThrowsException(
+				new InvalidInvocationException(
+						"Inappropriate usage of mocked object"));
 
-		MonitorUser monitorUser = new MonitorUser("known_keycloak_id");
-		monitorUser.setId(43L);
+		MonitorUser monitorUser43 = new MonitorUser("known_keycloak_id");
+		monitorUser43.setId(43L);
 
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
+		MonitoredEndpoint monitoredEndpoint45 = new MonitoredEndpoint(
 				"Valid endpoint", "https://www.google.com/",
 				LocalDateTime.now(), 5
 		);
-		monitoredEndpoint1.setId(45L);
-		monitoredEndpoint1.setOwner(monitorUser);
+		monitoredEndpoint45.setId(45L);
+		monitoredEndpoint45.setOwner(monitorUser43);
 
-		MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint(
+		MonitoredEndpoint monitoredEndpoint46 = new MonitoredEndpoint(
 				"Invalid endpoint", "https://non-existant-page.com/",
 				LocalDateTime.now(), 7
 		);
-		monitoredEndpoint2.setId(46L);
-		monitoredEndpoint2.setOwner(monitorUser);
+		monitoredEndpoint46.setId(46L);
+		monitoredEndpoint46.setOwner(monitorUser43);
 
-
-		ArrayList<MonitoringResult> monitoringResultsList = new ArrayList<>();
+		monitoringResultsList = new ArrayList<>();
 
 		MonitorUserRepository monitorUserRepository = Mockito.mock(
 				MonitorUserRepository.class, defaultAnswer);
 		MonitoredEndpointRepository monitoredEndpointRepository = Mockito.mock(
 				MonitoredEndpointRepository.class, defaultAnswer);
-		Mockito.doReturn(new ArrayList<>(
-				Arrays.asList(monitoredEndpoint1, monitoredEndpoint2))).when(
-				monitoredEndpointRepository).getRequiringUpdate();
 		MonitoringResultRepository monitoringResultRepository = Mockito.mock(
 				MonitoringResultRepository.class, defaultAnswer);
+
+		Mockito.doReturn(new ArrayList<>(
+				Arrays.asList(monitoredEndpoint45, monitoredEndpoint46))).when(
+				monitoredEndpointRepository).getRequiringUpdate();
 		Mockito.doAnswer(i ->
 						 {
 							 monitoringResultsList.add(i.getArgument(0));
@@ -74,8 +85,9 @@ public class MonitoringServiceTest
 		Mockito.doAnswer(i -> i.getArgument(0)).when(
 				monitoredEndpointRepository).save(ArgumentMatchers.any());
 
-		InternetRequestService internetRequestService = Mockito.mock(
-				InternetRequestService.class, defaultAnswer);
+		internetRequestService = Mockito.mock(InternetRequestService.class,
+											  defaultAnswer
+		);
 		try
 		{
 			HttpResponse<String> r1 = Mockito.mock(HttpResponse.class,
@@ -92,15 +104,10 @@ public class MonitoringServiceTest
 					"https://non-existant-page.com/");
 		}
 		// Why would you make `.when()` return T???
-		catch (IOException e)
+		catch (IOException | InterruptedException e)
 		{
 			throw new RuntimeException(e);
 		}
-		catch (InterruptedException e)
-		{
-			throw new RuntimeException(e);
-		}
-
 
 		LocalDateTimeService localDateTimeService = Mockito.mock(
 				LocalDateTimeService.class, defaultAnswer);
@@ -108,17 +115,23 @@ public class MonitoringServiceTest
 				localDateTimeService).now();
 		MonitorUserService monitorUserService = new MonitorUserService(
 				monitorUserRepository);
-		MonitoredEndpointService monitoredEndpointService =
-				new MonitoredEndpointService(
+		monitoredEndpointService = new MonitoredEndpointService(
 				monitoredEndpointRepository, monitorUserService,
 				localDateTimeService
 		);
-		MonitoringResultService monitoringResultService =
-				new MonitoringResultService(
+		monitoringResultService = new MonitoringResultService(
 				monitoringResultRepository, monitoredEndpointService,
 				monitorUserService
 		);
+	}
 
+	/**
+	 * Test endpoints are checked and values are returned
+	 * (using automatic thread count)
+	 */
+	@Test
+	void standardFlowTest()
+	{
 		MonitoringService monitoringService = new MonitoringService(0,
 																	internetRequestService,
 																	monitoredEndpointService,
@@ -127,8 +140,12 @@ public class MonitoringServiceTest
 
 		try
 		{
-			// Exceptions within threads don't fail tests,
-			// so the only indicator anything is wrong are the obtained values
+			assertEquals(Runtime.getRuntime().availableProcessors(),
+						 monitoringService.getThreading()
+			);
+
+			// Exceptions within threads don't fail tests, so the only
+			// indicator anything is wrong are the obtained values
 			monitoringService.checkEndpoints();
 			monitoringService.awaitEndpointsChecked();
 
@@ -150,97 +167,13 @@ public class MonitoringServiceTest
 		}
 	}
 
+	/**
+	 * Test endpoints are checked and values are returned
+	 * (using explicit thread count)
+	 */
 	@Test
 	void standardFlowTestWithExplicitThreads()
 	{
-		var defaultAnswer = new ThrowsException(new InvalidInvocationException(
-				"Inappropriate usage of mocked object"));
-
-		MonitorUser monitorUser = new MonitorUser("known_keycloak_id");
-		monitorUser.setId(43L);
-
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
-				"Valid endpoint", "https://www.google.com/",
-				LocalDateTime.now(), 5
-		);
-		monitoredEndpoint1.setId(45L);
-		monitoredEndpoint1.setOwner(monitorUser);
-
-		MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint(
-				"Invalid endpoint", "https://non-existant-page.com/",
-				LocalDateTime.now(), 7
-		);
-		monitoredEndpoint2.setId(46L);
-		monitoredEndpoint2.setOwner(monitorUser);
-
-
-		ArrayList<MonitoringResult> monitoringResultsList = new ArrayList<>();
-
-		MonitorUserRepository monitorUserRepository = Mockito.mock(
-				MonitorUserRepository.class, defaultAnswer);
-		MonitoredEndpointRepository monitoredEndpointRepository = Mockito.mock(
-				MonitoredEndpointRepository.class, defaultAnswer);
-		Mockito.doReturn(new ArrayList<>(
-				Arrays.asList(monitoredEndpoint1, monitoredEndpoint2))).when(
-				monitoredEndpointRepository).getRequiringUpdate();
-		MonitoringResultRepository monitoringResultRepository = Mockito.mock(
-				MonitoringResultRepository.class, defaultAnswer);
-		Mockito.doAnswer(i ->
-						 {
-							 monitoringResultsList.add(i.getArgument(0));
-							 return i.getArgument(0);
-						 }).when(monitoringResultRepository).save(
-				ArgumentMatchers.any());
-		Mockito.doAnswer(i -> monitoringResultsList).when(
-				monitoredEndpointRepository).findAll();
-		Mockito.doAnswer(i -> i.getArgument(0)).when(
-				monitoredEndpointRepository).save(ArgumentMatchers.any());
-
-		InternetRequestService internetRequestService = Mockito.mock(
-				InternetRequestService.class, defaultAnswer);
-		try
-		{
-			HttpResponse<String> r1 = Mockito.mock(HttpResponse.class,
-												   defaultAnswer
-			);
-
-			Mockito.doReturn(200).when(r1).statusCode();
-			Mockito.doReturn("<h1>Google</h1>").when(r1).body();
-
-			Mockito.doReturn(r1).when(internetRequestService).makeRequest(
-					"https://www.google.com/");
-			Mockito.doThrow(new ConnectException("???")).when(
-					internetRequestService).makeRequest(
-					"https://non-existant-page.com/");
-		}
-		// Why would you make `.when()` return T???
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-		catch (InterruptedException e)
-		{
-			throw new RuntimeException(e);
-		}
-
-
-		LocalDateTimeService localDateTimeService = Mockito.mock(
-				LocalDateTimeService.class, defaultAnswer);
-		Mockito.doReturn(LocalDateTime.of(2003, 3, 27, 15, 44, 58)).when(
-				localDateTimeService).now();
-		MonitorUserService monitorUserService = new MonitorUserService(
-				monitorUserRepository);
-		MonitoredEndpointService monitoredEndpointService =
-				new MonitoredEndpointService(
-				monitoredEndpointRepository, monitorUserService,
-				localDateTimeService
-		);
-		MonitoringResultService monitoringResultService =
-				new MonitoringResultService(
-				monitoringResultRepository, monitoredEndpointService,
-				monitorUserService
-		);
-
 		MonitoringService monitoringService = new MonitoringService(1,
 																	internetRequestService,
 																	monitoredEndpointService,
@@ -249,9 +182,10 @@ public class MonitoringServiceTest
 
 		try
 		{
-			// Exceptions within threads don't fail tests,
-			// so the only indicator anything is wrong are the obtained
-			// values
+			assertEquals(1, monitoringService.getThreading());
+
+			// Exceptions within threads don't fail tests, so the only
+			// indicator anything is wrong are the obtained values
 			monitoringService.checkEndpoints();
 			monitoringService.awaitEndpointsChecked();
 
