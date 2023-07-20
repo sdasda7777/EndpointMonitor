@@ -28,11 +28,21 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @ActiveProfiles("test")
 public class MonitoringServiceTest
 {
-	private ArrayList<MonitoringResult> monitoringResultsList;
+	private ThrowsException defaultAnswer;
+
+	private MonitorUser monitorUser43;
+	private MonitoredEndpoint monitoredEndpoint53;
+	private MonitoredEndpoint monitoredEndpoint54;
+
+	private MonitorUserRepository monitorUserRepository;
+	private MonitoredEndpointRepository monitoredEndpointRepository;
+	private MonitoringResultRepository monitoringResultRepository;
 
 	private InternetRequestService internetRequestService;
 	private MonitoredEndpointService monitoredEndpointService;
 	private MonitoringResultService monitoringResultService;
+
+	private ArrayList<MonitoringResult> monitoringResultsList;
 
 	/**
 	 * Set up member variables for test purposes
@@ -41,38 +51,38 @@ public class MonitoringServiceTest
 	void setup()
 	{
 		// variables common to the tests
-		ThrowsException defaultAnswer = new ThrowsException(
+		defaultAnswer = new ThrowsException(
 				new InvalidInvocationException(
 						"Inappropriate usage of mocked object"));
 
-		MonitorUser monitorUser43 = new MonitorUser("known_keycloak_id");
+		monitorUser43 = new MonitorUser("known_keycloak_id");
 		monitorUser43.setId(43L);
 
-		MonitoredEndpoint monitoredEndpoint45 = new MonitoredEndpoint(
+		monitoredEndpoint53 = new MonitoredEndpoint(
 				"Valid endpoint", "https://www.google.com/",
 				LocalDateTime.now(), 5
 		);
-		monitoredEndpoint45.setId(45L);
-		monitoredEndpoint45.setOwner(monitorUser43);
+		monitoredEndpoint53.setId(53L);
+		monitoredEndpoint53.setOwner(monitorUser43);
 
-		MonitoredEndpoint monitoredEndpoint46 = new MonitoredEndpoint(
+		monitoredEndpoint54 = new MonitoredEndpoint(
 				"Invalid endpoint", "https://non-existant-page.com/",
 				LocalDateTime.now(), 7
 		);
-		monitoredEndpoint46.setId(46L);
-		monitoredEndpoint46.setOwner(monitorUser43);
+		monitoredEndpoint54.setId(54L);
+		monitoredEndpoint54.setOwner(monitorUser43);
 
 		monitoringResultsList = new ArrayList<>();
 
-		MonitorUserRepository monitorUserRepository = Mockito.mock(
+		monitorUserRepository = Mockito.mock(
 				MonitorUserRepository.class, defaultAnswer);
-		MonitoredEndpointRepository monitoredEndpointRepository = Mockito.mock(
+		monitoredEndpointRepository = Mockito.mock(
 				MonitoredEndpointRepository.class, defaultAnswer);
-		MonitoringResultRepository monitoringResultRepository = Mockito.mock(
+		monitoringResultRepository = Mockito.mock(
 				MonitoringResultRepository.class, defaultAnswer);
 
 		Mockito.doReturn(new ArrayList<>(
-				Arrays.asList(monitoredEndpoint45, monitoredEndpoint46))).when(
+				Arrays.asList(monitoredEndpoint53, monitoredEndpoint54))).when(
 				monitoredEndpointRepository).getRequiringUpdate();
 		Mockito.doAnswer(i ->
 						 {

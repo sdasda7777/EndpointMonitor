@@ -9,6 +9,7 @@ import com.sdasda7777.endpointmonitor.layer2.entities.MonitoredEndpoint;
 import com.sdasda7777.endpointmonitor.layer3.MonitorUserRepository;
 import com.sdasda7777.endpointmonitor.layer3.MonitoredEndpointRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -34,12 +35,16 @@ class MonitoredEndpointControllerTest
 
 	private ThrowsException defaultAnswer;
 
+	private JwtAuthenticationToken principal43;
+	private JwtAuthenticationToken principal44;
+	private JwtAuthenticationToken principalUnknown;
+
+	private HttpServletRequest request;
 
 	private MonitorUser monitorUser43;
-    private MonitorUser monitorUser44;
-
-	private MonitoredEndpoint monitoredEndpoint46;
-	private MonitoredEndpoint monitoredEndpoint47;
+	private MonitorUser monitorUser44;
+	private MonitoredEndpoint monitoredEndpoint53;
+	private MonitoredEndpoint monitoredEndpoint54;
 
 	private MonitoredEndpointRepository monitoredEndpointRepository;
 	private MonitorUserRepository monitorUserRepository;
@@ -48,855 +53,985 @@ class MonitoredEndpointControllerTest
 	private MonitorUserService monitorUserService;
 	private MonitoredEndpointService monitoredEndpointService;
 
+	private MonitoredEndpointController monitoredEndpointController;
+
 	@BeforeEach
 	void setup()
 	{
 		defaultAnswer = new ThrowsException(new InvalidInvocationException(
 				"Inappropriate usage of mocked object"));
 
+		principal43 = Mockito.mock(JwtAuthenticationToken.class,
+								   defaultAnswer);
+		Mockito.doReturn(true).when(principal43).isAuthenticated();
+		Mockito.doReturn("known_keycloak_id_43").when(principal43).getName();
+		principal44 = Mockito.mock(JwtAuthenticationToken.class,
+								   defaultAnswer);
+		Mockito.doReturn(true).when(principal44).isAuthenticated();
+		Mockito.doReturn("known_keycloak_id_44").when(principal44).getName();
+		principalUnknown = Mockito.mock(JwtAuthenticationToken.class,
+										defaultAnswer
+		);
+		Mockito.doReturn(true).when(principalUnknown).isAuthenticated();
+		Mockito.doReturn("unknown_keycloak_id")
+			   .when(principalUnknown)
+			   .getName();
+
+		request = Mockito.mock(HttpServletRequest.class, defaultAnswer);
+
 		monitorUser43 = new MonitorUser("known_keycloak_id_43");
-        monitorUser43.setId(43L);
-        monitorUser44 = new MonitorUser("known_keycloak_id_44");
-        monitorUser44.setId(44L);
+		monitorUser43.setId(43L);
+		monitorUser44 = new MonitorUser("known_keycloak_id_44");
+		monitorUser44.setId(44L);
 
 
-		monitoredEndpoint46 = new MonitoredEndpoint(
-				"Test endpoint 0", "https://url0.org",
-				LocalDateTime.of(2001, 1, 25, 13, 42, 56),
-				/*LocalDateTime.of(2002, 2, 26, 14, 43, 57),*/
-				5
+		monitoredEndpoint53 = new MonitoredEndpoint("Test endpoint 0",
+													"https://url0.org",
+													LocalDateTime.of(2001, 1,
+																	 25, 13,
+																	 42,
+																	 56
+													), 5
 		);
-		monitoredEndpoint46.setId(44L);
-		monitoredEndpoint46.setLastCheckDate(
+		monitoredEndpoint53.setId(53L);
+		monitoredEndpoint53.setLastCheckDate(
 				LocalDateTime.of(2002, 2, 26, 14, 43, 57));
-		monitoredEndpoint46.setOwner(monitorUser43);
-		monitoredEndpoint47 = new MonitoredEndpoint(
-				"Test endpoint 1", "https://url1.com",
-				LocalDateTime.of(2003, 3, 27, 15, 44, 58),
-				/*LocalDateTime.of(2004, 4, 28, 16, 45, 59),*/
-				7
+		monitoredEndpoint53.setOwner(monitorUser43);
+		monitoredEndpoint54 = new MonitoredEndpoint("Test endpoint 1",
+													"https://url1.com",
+													LocalDateTime.of(2003, 3,
+																	 27, 15,
+																	 44,
+																	 58
+													), 7
 		);
-		monitoredEndpoint47.setId(45L);
-		monitoredEndpoint47.setLastCheckDate(
+		monitoredEndpoint54.setId(54L);
+		monitoredEndpoint54.setLastCheckDate(
 				LocalDateTime.of(2004, 4, 28, 16, 45, 59));
-		monitoredEndpoint47.setOwner(monitorUser43);
+		monitoredEndpoint54.setOwner(monitorUser43);
 
 
 		monitoredEndpointRepository = Mockito.mock(
 				MonitoredEndpointRepository.class, defaultAnswer);
-		monitorUserRepository = Mockito.mock(
-				MonitorUserRepository.class, defaultAnswer);
+		monitorUserRepository = Mockito.mock(MonitorUserRepository.class,
+											 defaultAnswer
+		);
 
-		localDateTimeService = Mockito.mock(
-				LocalDateTimeService.class, defaultAnswer);
-		monitorUserService = new MonitorUserService(
-				monitorUserRepository);
-		monitoredEndpointService =
-				new MonitoredEndpointService(
-						monitoredEndpointRepository, monitorUserService,
-						localDateTimeService
-				);
+		localDateTimeService = Mockito.mock(LocalDateTimeService.class,
+											defaultAnswer
+		);
+		monitorUserService = new MonitorUserService(monitorUserRepository);
+		monitoredEndpointService = new MonitoredEndpointService(
+				monitoredEndpointRepository, monitorUserService,
+				localDateTimeService
+		);
+
+		monitoredEndpointController = new MonitoredEndpointController(
+				monitoredEndpointService);
 	}
 
-	@Test
-	void getMonitoredEndpointsNoKeycloakId()
+	@Nested
+	class ReadEndpoint
 	{
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
+		@Test
+		void testGetMonitoredEndpointsNoKeycloakId()
+		{
+			Mockito.doReturn(null).when(request).getUserPrincipal();
 
-		//
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(null).when(request1).getUserPrincipal();
+			ResponseStatusException expected_error =
+					new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"Authorization token must be " + "provided"
+			);
 
-		ResponseStatusException expected_error = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST, "Authorization token must be "
-                                        + "provided");
-		ResponseStatusException error = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.getMonitoredEndpoints(
-						request1)
-		);
-		assertEquals(expected_error.getStatus(), error.getStatus());
-		assertEquals(expected_error.getMessage(), error.getMessage());
+			// Assertions
+			ResponseStatusException error = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.getMonitoredEndpoints(
+							request)
+			);
+			assertEquals(expected_error.getStatus(), error.getStatus());
+			assertEquals(expected_error.getMessage(), error.getMessage());
+		}
+
+		@Test
+		void testGetMonitoredEndpointsUnknownKeycloakId()
+		{
+			Mockito.doReturn(Collections.emptyList()).when(
+					monitoredEndpointRepository).getEndpointsByAuthId(
+					"unknown_keycloak_id");
+			Mockito.doReturn(Collections.emptyList()).when(
+					monitorUserRepository).findByAuthorizationId(
+					"unknown_keycloak_id");
+
+			MonitoredEndpointController monitoredEndpointController =
+					new MonitoredEndpointController(
+					monitoredEndpointService);
+
+			HttpServletRequest request1 =
+					Mockito.mock(HttpServletRequest.class,
+													   defaultAnswer
+			);
+			Mockito.doReturn(principalUnknown)
+				   .when(request1)
+				   .getUserPrincipal();
+
+			// Assertions
+			assertEquals(Collections.emptyList(),
+						 monitoredEndpointController.getMonitoredEndpoints(
+								 request1)
+			);
+		}
+
+		@Test
+		void testGetMonitoredEndpointsAllRight()
+		{
+			Mockito.doReturn(List.of(monitoredEndpoint53, monitoredEndpoint54))
+				   .when(monitoredEndpointRepository)
+				   .getEndpointsByAuthId("known_keycloak_id_43");
+
+			HttpServletRequest request1 =
+					Mockito.mock(HttpServletRequest.class,
+													   defaultAnswer
+			);
+			Mockito.doReturn(principal43).when(request1).getUserPrincipal();
+
+			List<MonitoredEndpointDTO> expectedResult = List.of(
+					new MonitoredEndpointDTO(53L, "Test endpoint 0",
+											 "https://url0.org",
+											 LocalDateTime.of(2001, 1, 25, 13,
+															  42, 56
+											 ),
+											 LocalDateTime.of(2002, 2, 26, 14,
+															  43, 57
+											 ), 5, 43L
+					), new MonitoredEndpointDTO(54L, "Test endpoint 1",
+												"https://url1.com",
+												LocalDateTime.of(2003, 3, 27,
+																 15, 44, 58
+												), LocalDateTime.of(2004, 4,
+																	28,
+																	16, 45, 59
+					), 7, 43L
+					));
+
+			// Assertions
+			List<MonitoredEndpointDTO> actualResult =
+					monitoredEndpointController.getMonitoredEndpoints(
+					request1).stream().toList();
+			assertEquals(2, actualResult.size());
+			assertEquals(expectedResult.get(0), actualResult.get(0));
+			assertEquals(expectedResult.get(1), actualResult.get(1));
+		}
 	}
 
-	@Test
-	void getMonitoredEndpointsUnknownKeycloakId()
+
+	@Nested
+	class CreateEndpoint
 	{
-		Mockito.doReturn(Collections.emptyList()).when(
-				monitoredEndpointRepository).getEndpointsByAuthId(
-				"bad_keycloak_id");
-		Mockito.doReturn(Collections.emptyList())
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("bad_keycloak_id");
+		private MonitoredEndpoint newEndpoint;
 
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
+		@BeforeEach
+		void setup()
+		{
+			Mockito.doReturn(LocalDateTime.of(2003, 3, 27, 15, 44, 58)).when(
+					localDateTimeService).now();
 
-		//
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("bad_keycloak_id").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
+			Mockito.doReturn(List.of(monitorUser43))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_43");
+			Mockito.doReturn(Collections.emptyList()).when(
+					monitorUserRepository).findByAuthorizationId(
+					"unknown_keycloak_id");
+			Mockito.doAnswer(i ->
+							 {
+								 MonitoredEndpoint arg = i.getArgument(0);
+								 arg.setId(53L);
+								 return arg;
+							 }).when(monitoredEndpointRepository).save(
+					ArgumentMatchers.any());
 
-		assertEquals(Collections.emptyList(),
-					 monitoredEndpointController.getMonitoredEndpoints(request1)
-		);
+			newEndpoint = new MonitoredEndpoint();
+			newEndpoint.setName("Valid name");
+			newEndpoint.setUrl("https://url.com");
+			newEndpoint.setMonitoringInterval(2);
+		}
+
+		@Test
+		void testCreateNoKeycloakId()
+		{
+			Mockito.doReturn(null).when(request).getUserPrincipal();
+
+			ResponseStatusException expected_error =
+					new ResponseStatusException(
+							HttpStatus.BAD_REQUEST,
+							"Authorization token must be " + "provided"
+					);
+
+			// Assertions
+			ResponseStatusException error = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.createEndpoint(
+							newEndpoint, request)
+			);
+			assertEquals(expected_error.getStatus(), error.getStatus());
+			assertEquals(expected_error.getMessage(), error.getMessage());
+		}
+
+		@Test
+		void testCreateNullName()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+			newEndpoint.setName(null);
+
+			ResponseStatusException expectedException =
+					new ResponseStatusException(
+							HttpStatus.BAD_REQUEST, "Endpoint name must be provided");
+
+			// Assertions
+			ResponseStatusException response0 = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.createEndpoint(
+							newEndpoint, request)
+			);
+			assertEquals(expectedException.getStatus(), response0.getStatus());
+			assertEquals(expectedException.getMessage(),
+						 response0.getMessage()
+			);
+		}
+
+		@Test
+		void testCreateEmptyName()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+			newEndpoint.setName("");
+
+			ResponseStatusException expectedException =
+					new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "Endpoint name must be provided");
+
+			// Assertions
+			ResponseStatusException response = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.createEndpoint(
+							newEndpoint, request)
+			);
+			assertEquals(expectedException.getStatus(), response.getStatus());
+			assertEquals(expectedException.getMessage(),
+						 response.getMessage());
+		}
+
+		@Test
+		void testCreateNullUrl()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+			newEndpoint.setUrl(null);
+
+			ResponseStatusException expectedException =
+					new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"Endpoint url must be provided and be in format '"
+					+ "(http|https|ftp)://address'"
+			);
+
+			// Assertions
+			ResponseStatusException response = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.createEndpoint(
+							newEndpoint, request)
+			);
+			assertEquals(expectedException.getStatus(), response.getStatus());
+			assertEquals(expectedException.getMessage(),
+						 response.getMessage());
+		}
+
+		@Test
+		void testCreateInvalidUrl()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+			newEndpoint.setUrl("invalid url");
+
+			ResponseStatusException expectedException =
+					new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"Endpoint url must be provided and be in format '"
+					+ "(http|https|ftp)://address'"
+			);
+
+			// Assertions
+			ResponseStatusException response = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.createEndpoint(
+							newEndpoint, request)
+			);
+			assertEquals(expectedException.getStatus(), response.getStatus());
+			assertEquals(expectedException.getMessage(),
+						 response.getMessage());
+		}
+
+		@Test
+		void testCreateNullInterval()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+			newEndpoint.setMonitoringInterval(null);
+
+			ResponseStatusException expectedException =
+					new ResponseStatusException(
+					HttpStatus.BAD_REQUEST, "Monitoring interval must be "
+											+ "provided and be non-negative");
+
+			// Assertions
+			ResponseStatusException response = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.createEndpoint(
+							newEndpoint, request)
+			);
+			assertEquals(expectedException.getStatus(), response.getStatus());
+			assertEquals(expectedException.getMessage(),
+						 response.getMessage());
+		}
+
+		@Test
+		void testCreateNegativeInterval()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+			newEndpoint.setMonitoringInterval(-1);
+
+			ResponseStatusException expectedException =
+					new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"Monitoring interval must be provided and be non-negative"
+			);
+
+			// Assertions
+			ResponseStatusException response = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.createEndpoint(
+							newEndpoint, request)
+			);
+			assertEquals(expectedException.getStatus(), response.getStatus());
+			assertEquals(expectedException.getMessage(),
+						 response.getMessage());
+		}
+
+		@Test
+		void testCreateTypical()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+
+			MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
+					"Valid endpoint name", "https://url.com",
+					LocalDateTime.of(2001, 1, 25, 13, 42, 56), 2
+			);
+
+			//Test with known user
+			MonitoredEndpointDTO expectedResult1 =
+					new MonitoredEndpointDTO(53L,
+																			"Valid"
+																			+
+																			" endpoint name",
+																			"https"
+																			+
+																			"://url.com",
+																			LocalDateTime.of(
+																					2003,
+																					3,
+																					27,
+																					15,
+																					44,
+																					58
+																			),
+																			LocalDateTime.of(
+																					2003,
+																					3,
+																					27,
+																					15,
+																					44,
+																					58
+																					- 2
+																			),
+																			2,
+																			43L
+			);
+
+			MonitoredEndpointDTO actualResult1 =
+					monitoredEndpointController.createEndpoint(
+					monitoredEndpoint1, request);
+			assertEquals(expectedResult1, actualResult1);
+		}
+
+		@Test
+		void testCreateZeroInterval()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+
+			MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint();
+			monitoredEndpoint2.setName("Valid endpoint name");
+			monitoredEndpoint2.setUrl("https://url.com");
+			monitoredEndpoint2.setMonitoringInterval(0);
+
+			MonitoredEndpointDTO expectedResult = new MonitoredEndpointDTO(53L,
+																		   "Valid "
+																		   +
+																		   "endpoint"
+																		   +
+																		   " name",
+																		   "https"
+																		   +
+																		   "://url"
+																		   +
+																		   ".com",
+																		   LocalDateTime.of(
+																				   2003,
+																				   3,
+																				   27,
+																				   15,
+																				   44,
+																				   58
+																		   ),
+																		   LocalDateTime.of(
+																				   2003,
+																				   3,
+																				   27,
+																				   15,
+																				   44,
+																				   58
+																		   )
+					, 0,
+																		   43L
+			);
+
+			// Assertions
+			MonitoredEndpointDTO result2 =
+					monitoredEndpointController.createEndpoint(
+					monitoredEndpoint2, request);
+			assertEquals(expectedResult, result2);
+		}
+
+		@Test
+		void testCreateUnknownUser()
+		{
+			Mockito.doReturn(principalUnknown).when(request).getUserPrincipal();
+
+			MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint();
+			monitoredEndpoint2.setName("Valid endpoint name");
+			monitoredEndpoint2.setUrl("https://url.com");
+			monitoredEndpoint2.setMonitoringInterval(3);
+
+			Mockito.doAnswer(i ->
+							 {
+								 MonitorUser arg = i.getArgument(0);
+								 arg.setId(45L);
+								 return arg;
+							 }).when(monitorUserRepository).save(
+					ArgumentMatchers.any());
+
+			MonitoredEndpointDTO expectedResult = new MonitoredEndpointDTO(53L,
+																		   "Valid "
+																		   +
+																		   "endpoint"
+																		   +
+																		   " name",
+																		   "https"
+																		   +
+																		   "://url"
+																		   +
+																		   ".com",
+																		   LocalDateTime.of(
+																				   2003,
+																				   3,
+																				   27,
+																				   15,
+																				   44,
+																				   58
+																		   ),
+																		   LocalDateTime.of(
+																				   2003,
+																				   3,
+																				   27,
+																				   15,
+																				   44,
+																				   58
+																				   - 3
+																		   )
+					, 3,
+																		   45L
+			);
+
+			// Assertions
+			MonitoredEndpointDTO result2 =
+					monitoredEndpointController.createEndpoint(
+					monitoredEndpoint2, request);
+			assertEquals(expectedResult, result2);
+		}
 	}
 
-	@Test
-	void getMonitoredEndpointsAllRight()
+	@Nested
+	class UpdateEndpoint
 	{
-		Mockito.doReturn(List.of(monitoredEndpoint46, monitoredEndpoint47)).when(
-				monitoredEndpointRepository).getEndpointsByAuthId(
-				"good_keycloak_id");
+		private MonitoredEndpoint oldEndpoint;
+		private MonitoredEndpoint newEndpoint;
 
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
+		@BeforeEach
+		void setup()
+		{
+			oldEndpoint = new MonitoredEndpoint("Valid endpoint name",
+												"https://valid-url.com",
+												LocalDateTime.of(2001, 1, 25,
+																 13, 42, 56
+												), 2
+			);
+			oldEndpoint.setId(53L);
+			oldEndpoint.setOwner(monitorUser43);
 
-		//
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("good_keycloak_id").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
+			newEndpoint = new MonitoredEndpoint("New valid endpoint name",
+												"https://new-valid-url.com",
+												LocalDateTime.of(2003, 3, 27,
+																 15, 44, 58
+												), 3
+			);
+			newEndpoint.setId(54L);
+			newEndpoint.setOwner(monitorUser44);
+		}
 
-		List<MonitoredEndpointDTO> expectedResult = List.of(
-				new MonitoredEndpointDTO(44L, "Test endpoint 0",
-										 "https://url0.org",
-										 LocalDateTime.of(2001, 1, 25, 13, 42,
-														  56
-										 ),
-										 LocalDateTime.of(2002, 2, 26, 14, 43,
-														  57
-										 ), 5, 43L
-				), new MonitoredEndpointDTO(45L, "Test endpoint 1",
-											"https://url1.com",
-											LocalDateTime.of(2003, 3, 27, 15,
-															 44, 58
-											), LocalDateTime.of(2004, 4, 28, 16,
-																45, 59
-				), 7, 43L
-				));
-		List<MonitoredEndpointDTO> actualResult =
-                monitoredEndpointController.getMonitoredEndpoints(
-				request1).stream().toList();
+		@Test
+		void testUpdateNoKeycloakId()
+		{
+			Mockito.doReturn(null).when(request).getUserPrincipal();
 
-		assertEquals(2, actualResult.size());
-		assertEquals(expectedResult.get(0), actualResult.get(0));
-		assertEquals(expectedResult.get(1), actualResult.get(1));
+			ResponseStatusException expected_error =
+					new ResponseStatusException(
+							HttpStatus.BAD_REQUEST,
+							"Authorization token must be " + "provided"
+					);
+
+			// Assertions
+			ResponseStatusException error = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.updateEndpoint(53L,
+							newEndpoint, request)
+			);
+			assertEquals(expected_error.getStatus(), error.getStatus());
+			assertEquals(expected_error.getMessage(), error.getMessage());
+		}
+
+		@Test
+		void testUpdateFromNonOwner()
+		{
+			Mockito.doReturn(principal44).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.of(oldEndpoint)).when(
+					monitoredEndpointRepository).findById(53L);
+			Mockito.doReturn(List.of(monitorUser44))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_44");
+
+			ResponseStatusException expectedResult =
+					new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"User does not own specified endpoint"
+			);
+
+			// Assertions
+			ResponseStatusException result = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.updateEndpoint(53L,
+																	 newEndpoint,
+																	 request
+					)
+			);
+			assertEquals(expectedResult.getStatus(), result.getStatus());
+			assertEquals(expectedResult.getMessage(), result.getMessage());
+		}
+
+		@Test
+		void testUpdateFromUnknownUser()
+		{
+			Mockito.doReturn(Optional.of(oldEndpoint)).when(
+					monitoredEndpointRepository).findById(53L);
+			Mockito.doReturn(Collections.emptyList()).when(
+					monitorUserRepository).findByAuthorizationId(
+					"unknown_keycloak_id");
+
+			Mockito.doReturn(principalUnknown).when(request).getUserPrincipal();
+
+			ResponseStatusException expectedException =
+					new ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"User with given authorization Id (unknown_keycloak_id) "
+					+ "does not exist"
+			);
+
+			// Assertions
+			ResponseStatusException result = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.updateEndpoint(53L,
+																	 newEndpoint,
+																	 request
+					)
+			);
+			assertEquals(expectedException.getStatus(), result.getStatus());
+			assertEquals(expectedException.getMessage(), result.getMessage());
+		}
+
+		@Test
+		void testUpdateNonExistentEndpoint()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.empty())
+				   .when(monitoredEndpointRepository)
+				   .findById(69L);
+			Mockito.doReturn(List.of(monitorUser43))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_43");
+
+			ResponseStatusException expectedResult =
+					new ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Endpoint with given Id (69) does not exist"
+			);
+
+			// Assertions
+			ResponseStatusException result = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.updateEndpoint(69L,
+																	 newEndpoint,
+																	 request
+					)
+			);
+			assertEquals(expectedResult.getStatus(), result.getStatus());
+			assertEquals(expectedResult.getMessage(), result.getMessage());
+		}
+
+		@Test
+		void testUpdateEmptyName()
+		{
+			newEndpoint.setName("");
+
+			ResponseStatusException expectedResult =
+					new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"If endpoint name is provided, it must not be empty"
+			);
+			ResponseStatusException result2 = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.updateEndpoint(53L,
+																	 newEndpoint,
+																	 request
+					)
+			);
+			assertEquals(expectedResult.getStatus(), result2.getStatus());
+			assertEquals(expectedResult.getMessage(), result2.getMessage());
+		}
+
+		@Test
+		void testUpdateInvalidUrl()
+		{
+			newEndpoint.setUrl("invalid url");
+
+			ResponseStatusException protoResult3 = new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"If endpoint url is provided, it must be in format '"
+					+ "(http|https|ftp)://address'"
+			);
+			ResponseStatusException result3 = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.updateEndpoint(53L,
+																	 newEndpoint,
+																	 request
+					)
+			);
+			assertEquals(protoResult3.getStatus(), result3.getStatus());
+			assertEquals(protoResult3.getMessage(), result3.getMessage());
+		}
+
+		@Test
+		void testUpdateNegativeInterval()
+		{
+			newEndpoint.setMonitoringInterval(-1);
+
+			ResponseStatusException expectedException = new ResponseStatusException(
+					HttpStatus.BAD_REQUEST,
+					"If monitoring interval is provided, it must be non-negative"
+			);
+			ResponseStatusException actualException = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.updateEndpoint(53L,
+																	 newEndpoint,
+																	 request
+					)
+			);
+			assertEquals(expectedException.getStatus(), actualException.getStatus());
+			assertEquals(expectedException.getMessage(), actualException.getMessage());
+		}
+
+		@Test
+		void testUpdateTypical()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.of(oldEndpoint)).when(
+					monitoredEndpointRepository).findById(53L);
+			Mockito.doReturn(List.of(monitorUser43))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_43");
+
+			Mockito.doAnswer(i -> i.getArgument(0)).when(
+					monitoredEndpointRepository).save(ArgumentMatchers.any());
+
+			MonitoredEndpointDTO expectedResult = new MonitoredEndpointDTO(53L,
+																		   "New valid endpoint name",
+																		   "https"
+																		   +
+																		   "://new-valid-url.com",
+																		   LocalDateTime.of(
+																				   2001,
+																				   1,
+																				   25,
+																				   13,
+																				   42,
+																				   56
+																		   ),
+																		   LocalDateTime.of(
+																				   2001,
+																				   1,
+																				   25,
+																				   13,
+																				   42,
+																				   54
+																		   )
+					, 3,
+																		   43L
+			);
+			MonitoredEndpointDTO actualResult =
+					monitoredEndpointController.updateEndpoint(
+					53L, newEndpoint, request);
+			assertEquals(expectedResult, actualResult);
+		}
+
+		@Test
+		void testUpdateZeroInterval()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.of(oldEndpoint)).when(
+					monitoredEndpointRepository).findById(53L);
+			Mockito.doReturn(List.of(monitorUser43))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_43");
+
+			Mockito.doAnswer(i -> i.getArgument(0)).when(
+					monitoredEndpointRepository).save(ArgumentMatchers.any());
+
+			newEndpoint.setMonitoringInterval(0);
+
+			MonitoredEndpointDTO expectedResult = new MonitoredEndpointDTO(53L,
+																		   "New valid endpoint name",
+																		   "https"
+																		   +
+																		   "://new-valid-url.com",
+																		   LocalDateTime.of(
+																				   2001,
+																				   1,
+																				   25,
+																				   13,
+																				   42,
+																				   56
+																		   ),
+																		   LocalDateTime.of(
+																				   2001,
+																				   1,
+																				   25,
+																				   13,
+																				   42,
+																				   54
+																		   )
+					, 0,
+																		   43L
+			);
+			MonitoredEndpointDTO actualResult =
+					monitoredEndpointController.updateEndpoint(
+					53L, newEndpoint, request);
+			assertEquals(expectedResult, actualResult);
+		}
 	}
 
-	@Test
-	void createEndpointInvalidEndpoint()
+	@Nested
+	class DeleteEndpoint
 	{
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
-
-		//Test creating without setting name
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("good_keycloak_id").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
-
-		MonitoredEndpoint monitoredEndpoint0 = new MonitoredEndpoint();
-		monitoredEndpoint0.setUrl("https://url.com");
-		monitoredEndpoint0.setMonitoringInterval(2);
-		ResponseStatusException response0 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.createEndpoint(
-						monitoredEndpoint0, request1)
-		);
-		ResponseStatusException errorProto0 = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST, "Endpoint name must be provided");
-		assertEquals(errorProto0.getStatus(), response0.getStatus());
-		assertEquals(errorProto0.getMessage(), response0.getMessage());
-
-		//Test creating with invalid name
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint();
-		monitoredEndpoint1.setName("");
-		monitoredEndpoint1.setUrl("https://url.com");
-		monitoredEndpoint1.setMonitoringInterval(2);
-		ResponseStatusException response1 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.createEndpoint(
-						monitoredEndpoint1, request1)
-		);
-		ResponseStatusException errorProto1 = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST, "Endpoint name must be provided");
-		assertEquals(errorProto1.getStatus(), response1.getStatus());
-		assertEquals(errorProto1.getMessage(), response1.getMessage());
-
-		//Test creating without setting url
-		MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint();
-		monitoredEndpoint2.setName("Valid name");
-		monitoredEndpoint2.setMonitoringInterval(2);
-		ResponseStatusException response2 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.createEndpoint(
-						monitoredEndpoint2, request1)
-		);
-		ResponseStatusException errorProto2 = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST,
-				"Endpoint url must be provided and be in format '"
-                + "(http|https|ftp)://address'"
-		);
-		assertEquals(errorProto2.getStatus(), response2.getStatus());
-		assertEquals(errorProto2.getMessage(), response2.getMessage());
-
-		//Test creating with invalid url
-		MonitoredEndpoint monitoredEndpoint3 = new MonitoredEndpoint();
-		monitoredEndpoint3.setName("Valid name");
-		monitoredEndpoint3.setUrl("invalid url");
-		monitoredEndpoint3.setMonitoringInterval(2);
-		ResponseStatusException response3 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.createEndpoint(
-						monitoredEndpoint3, request1)
-		);
-		ResponseStatusException errorProto3 = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST,
-				"Endpoint url must be provided and be in format '"
-                + "(http|https|ftp)://address'"
-		);
-		assertEquals(errorProto3.getStatus(), response3.getStatus());
-		assertEquals(errorProto3.getMessage(), response3.getMessage());
-
-		//Test creating without setting interval
-		MonitoredEndpoint monitoredEndpoint4 = new MonitoredEndpoint();
-		monitoredEndpoint4.setName("Valid name");
-		monitoredEndpoint4.setUrl("https://url.com");
-		ResponseStatusException response4 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.createEndpoint(
-						monitoredEndpoint4, request1)
-		);
-		ResponseStatusException errorProto4 = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST, "Monitoring interval must be "
-                                        + "provided and be non-negative");
-		assertEquals(errorProto4.getStatus(), response4.getStatus());
-		assertEquals(errorProto4.getMessage(), response4.getMessage());
-
-		// TODO: move to valids
-		//Test creating with invalid interval
-        /*MonitoredEndpoint monitoredEndpoint5 = new MonitoredEndpoint();
-        monitoredEndpoint5.setName("Valid name");
-        monitoredEndpoint5.setUrl("https://url.com");
-        monitoredEndpoint5.setMonitoringInterval(0);
-        ResponseStatusException response5 = assertThrows(
-                ResponseStatusException.class,
-                () -> monitoredEndpointController.createEndpoint
-                (monitoredEndpoint5, request1)
-        );
-        ResponseStatusException errorProto5 = new ResponseStatusException
-        (HttpStatus.BAD_REQUEST,
-                "Monitoring interval must be provided and be larger than 0");
-        assertEquals(errorProto5.getStatus(), response5.getStatus());
-        assertEquals(errorProto5.getMessage(), response5.getMessage());*/
-	}
-
-	@Test
-	void createEndpointAllRight()
-	{
-		Mockito.doReturn(LocalDateTime.of(2003, 3, 27, 15, 44, 58))
-			   .when(localDateTimeService).now();
-
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
-				"Valid endpoint name", "https://url.com",
-				LocalDateTime.of(2001, 1, 25, 13, 42, 56),
-				/*LocalDateTime.of(2002, 2, 26, 14, 43, 57),*/
-				2
-		);
-
-		Mockito.doReturn(List.of(monitorUser43))
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("known_keycloak_id_43");
-		Mockito.doAnswer(i ->
-						 {
-							 MonitoredEndpoint arg = i.getArgument(0);
-							 arg.setId(46L);
-							 return arg;
-						 }).when(monitoredEndpointRepository).save(
-				ArgumentMatchers.any());
-
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
-
-		//Test with known user
-		MonitoredEndpointDTO expectedResult1 = new MonitoredEndpointDTO(46L,
-																		"Valid endpoint name",
-																		"https://url.com",
-																		LocalDateTime.of(
-																				2003,
-																				3,
-																				27,
-																				15,
-																				44,
-																				58
-																		),
-																		LocalDateTime.of(
-																				2003,
-																				3,
-																				27,
-																				15,
-																				44,
-																				58
-																				- 2
-																		), 2,
-																		43L
-		);
-
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("known_keycloak_id_43").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
-
-		MonitoredEndpointDTO actualResult1 =
-                monitoredEndpointController.createEndpoint(
-				monitoredEndpoint1, request1);
-		assertEquals(expectedResult1.getId(), actualResult1.getId());
-		assertEquals(expectedResult1.getName(), actualResult1.getName());
-		assertEquals(expectedResult1.getUrl(), actualResult1.getUrl());
-		assertEquals(expectedResult1.getCreationDate(),
-					 actualResult1.getCreationDate()
-		);
-		assertEquals(expectedResult1.getLastCheckDate(),
-					 actualResult1.getLastCheckDate()
-		);
-		assertEquals(expectedResult1.getMonitoringInterval(),
-					 actualResult1.getMonitoringInterval()
-		);
-		assertEquals(expectedResult1.getOwnerId(), actualResult1.getOwnerId());
-
-
-		//Test creating with unknown user id
-		MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint();
-		monitoredEndpoint2.setName("Valid endpoint name");
-		monitoredEndpoint2.setUrl("https://url.com");
-		monitoredEndpoint2.setMonitoringInterval(3);
-
-		Mockito.doReturn(Collections.emptyList())
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("unknown_keycloak_id");
-		Mockito.doAnswer(i ->
-						 {
-							 MonitorUser arg = i.getArgument(0);
-							 arg.setId(45L);
-							 return arg;
-						 }).when(monitorUserRepository).save(
-				ArgumentMatchers.any());
-		Mockito.doAnswer(i ->
-						 {
-							 MonitoredEndpoint arg = i.getArgument(0);
-							 arg.setId(46L);
-							 return arg;
-						 }).when(monitoredEndpointRepository).save(
-				ArgumentMatchers.any());
-
-		MonitoredEndpointDTO resultProto2 = new MonitoredEndpointDTO(46L,
-																	 "Valid endpoint name",
-																	 "https://url.com",
-																	 LocalDateTime.of(
-																			 2003,
-																			 3,
-																			 27,
-																			 15,
-																			 44,
-																			 58
-																	 ),
-																	 LocalDateTime.of(
-																			 2003,
-																			 3,
-																			 27,
-																			 15,
-																			 44,
-																			 58
-																			 - 3
-																	 ), 3, 45L
-		);
-
-		JwtAuthenticationToken principal2 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal2).isAuthenticated();
-		Mockito.doReturn("unknown_keycloak_id").when(principal2).getName();
-		HttpServletRequest request2 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal2).when(request2).getUserPrincipal();
-
-		MonitoredEndpointDTO result2 =
-                monitoredEndpointController.createEndpoint(
-				monitoredEndpoint2, request2);
-		assertEquals(resultProto2.getId(), result2.getId());
-		assertEquals(resultProto2.getName(), result2.getName());
-		assertEquals(resultProto2.getUrl(), result2.getUrl());
-		assertEquals(resultProto2.getCreationDate(),
-                     result2.getCreationDate());
-		assertEquals(resultProto2.getLastCheckDate(),
-					 result2.getLastCheckDate()
-		);
-		assertEquals(resultProto2.getMonitoringInterval(),
-					 result2.getMonitoringInterval()
-		);
-		assertEquals(resultProto2.getOwnerId(), result2.getOwnerId());
-	}
-
-	@Test
-	void updateEndpointInvalidUser()
-	{
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
-
-		//Test update from non-owner
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("known_keycloak_id_2").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
-
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
-				"Valid endpoint name", "https://valid-url.com",
-				LocalDateTime.of(2001, 1, 25, 13, 42, 56), 2
-		);
-		monitoredEndpoint1.setId(45L);
-		monitoredEndpoint1.setOwner(monitorUser43);
-
-		MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint(
-				"New valid endpoint name", "https://new-valid-url.com",
-				LocalDateTime.of(2003, 3, 27, 15, 44, 58), 3
-		);
-		monitoredEndpoint2.setId(46L);
-		monitoredEndpoint2.setOwner(monitorUser44);
-
-
-		Mockito.doReturn(Optional.of(monitoredEndpoint1)).when(
-				monitoredEndpointRepository).findById(45L);
-		Mockito.doReturn(List.of(monitorUser44))
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("known_keycloak_id_2");
-
-		ResponseStatusException protoResult1 = new ResponseStatusException(
-				HttpStatus.UNAUTHORIZED,
-				"User does not own specified endpoint"
-		);
-		ResponseStatusException result1 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.updateEndpoint(45L,
-																 monitoredEndpoint2,
-																 request1
-				)
-		);
-		assertEquals(protoResult1.getStatus(), result1.getStatus());
-		assertEquals(protoResult1.getMessage(), result1.getMessage());
-
-		//Test update from unknown account
-		Mockito.doReturn(Optional.of(monitoredEndpoint1)).when(
-				monitoredEndpointRepository).findById(45L);
-		Mockito.doReturn(Collections.emptyList())
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("unknown_keycloak_id");
-		JwtAuthenticationToken principal2 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal2).isAuthenticated();
-		Mockito.doReturn("unknown_keycloak_id").when(principal2).getName();
-		HttpServletRequest request2 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal2).when(request2).getUserPrincipal();
-
-		ResponseStatusException protoResult2 = new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"User with given Id (unknown_keycloak_id) does not exist"
-		);
-		ResponseStatusException result2 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.updateEndpoint(45L,
-																 monitoredEndpoint2,
-																 request2
-				)
-		);
-		assertEquals(protoResult2.getStatus(), result2.getStatus());
-		assertEquals(protoResult2.getMessage(), result2.getMessage());
-	}
-
-	@Test
-	void updateEndpointInvalidEndpoint()
-	{
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
-
-
-		//Test updating non-existent endpoint
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("known_keycloak_id").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
-
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
-				"Valid endpoint name", "https://valid-url.com",
-				LocalDateTime.of(2001, 1, 25, 13, 42, 56), 2
-		);
-		monitoredEndpoint1.setId(45L);
-		monitoredEndpoint1.setOwner(monitorUser43);
-
-		MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint(
-				"New valid endpoint name", "https://new-valid-url.com",
-				LocalDateTime.of(2003, 3, 27, 15, 44, 58), 3
-		);
-		monitoredEndpoint2.setId(46L);
-		monitoredEndpoint2.setOwner(monitorUser44);
-
-
-		Mockito.doReturn(Optional.empty())
-			   .when(monitoredEndpointRepository)
-			   .findById(69L);
-		Mockito.doReturn(List.of(monitorUser43))
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("known_keycloak_id");
-
-		ResponseStatusException protoResult1 = new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Endpoint with given Id (69) does not exist"
-		);
-		ResponseStatusException result1 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.updateEndpoint(69L,
-																 monitoredEndpoint2,
-																 request1
-				)
-		);
-		assertEquals(protoResult1.getStatus(), result1.getStatus());
-		assertEquals(protoResult1.getMessage(), result1.getMessage());
-
-		//Test update with invalid name
-		monitoredEndpoint2.setName("");
-
-		ResponseStatusException protoResult2 = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST,
-				"If endpoint name is provided, it must not be empty"
-		);
-		ResponseStatusException result2 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.updateEndpoint(45L,
-																 monitoredEndpoint2,
-																 request1
-				)
-		);
-		assertEquals(protoResult2.getStatus(), result2.getStatus());
-		assertEquals(protoResult2.getMessage(), result2.getMessage());
-
-		//Test update with invalid url
-		monitoredEndpoint2.setName("New valid endpoint name");
-		monitoredEndpoint2.setUrl("invalid_url");
-
-		ResponseStatusException protoResult3 = new ResponseStatusException(
-				HttpStatus.BAD_REQUEST,
-				"If endpoint url is provided, it must be in format '"
-                + "(http|https|ftp)://address'"
-		);
-		ResponseStatusException result3 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.updateEndpoint(45L,
-																 monitoredEndpoint2,
-																 request1
-				)
-		);
-		assertEquals(protoResult3.getStatus(), result3.getStatus());
-		assertEquals(protoResult3.getMessage(), result3.getMessage());
-
-        /* //TODO: move to valids
-        //Test update with invalid interval
-        monitoredEndpoint2.setUrl("https://new-valid-url.com");
-        monitoredEndpoint2.setMonitoringInterval(0);
-
-        ResponseStatusException protoResult4 = new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, "If monitoring interval is provided,
-                it must be larger than 0");
-        ResponseStatusException result4 = assertThrows(
-                ResponseStatusException.class,
-                () -> monitoredEndpointController.updateEndpoint(45L,
-                monitoredEndpoint2, request1)
-        );
-        assertEquals(protoResult4.getStatus(), result4.getStatus());
-        assertEquals(protoResult4.getMessage(), result4.getMessage());
-        */
-	}
-
-	@Test
-	void updateEndpointAllRight()
-	{
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
-
-
-		//Test with known user
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("known_keycloak_id").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
-
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
-				"Valid endpoint name", "https://valid-url.com",
-				LocalDateTime.of(2001, 1, 25, 13, 42, 56), 2
-		);
-		monitoredEndpoint1.setId(45L);
-		monitoredEndpoint1.setLastCheckDate(
-				LocalDateTime.of(2002, 2, 26, 14, 43, 57));
-		monitoredEndpoint1.setOwner(monitorUser43);
-
-		MonitoredEndpoint monitoredEndpoint2 = new MonitoredEndpoint(
-				"New valid endpoint name", "https://new-valid-url.com",
-				LocalDateTime.of(2003, 3, 27, 15, 44, 58), 3
-		);
-		monitoredEndpoint2.setId(46L);
-		monitoredEndpoint2.setLastCheckDate(
-				LocalDateTime.of(2004, 4, 28, 16, 45, 59));
-		monitoredEndpoint2.setOwner(monitorUser44);
-
-
-		Mockito.doReturn(Optional.of(monitoredEndpoint1)).when(
-				monitoredEndpointRepository).findById(45L);
-		Mockito.doReturn(List.of(monitorUser43))
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("known_keycloak_id");
-
-		Mockito.doAnswer(i -> i.getArgument(0)).when(
-				monitoredEndpointRepository).save(ArgumentMatchers.any());
-
-		MonitoredEndpointDTO expectedResult1 = new MonitoredEndpointDTO(45L,
-																		"New valid endpoint name",
-																		"https://new-valid-url.com",
-																		LocalDateTime.of(
-																				2001,
-																				1,
-																				25,
-																				13,
-																				42,
-																				56
-																		),
-																		LocalDateTime.of(
-																				2002,
-																				2,
-																				26,
-																				14,
-																				43,
-																				57
-																		), 3,
-																		43L
-		);
-		MonitoredEndpointDTO actualResult1 =
-                monitoredEndpointController.updateEndpoint(
-				45L, monitoredEndpoint2, request1);
-		assertEquals(expectedResult1, actualResult1);
-	}
-
-	@Test
-	void deleteMonitoredEndpointInvalid()
-	{
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
-
-
-		// Unknown endpoint
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("known_keycloak_id").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
-
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
-				"Valid endpoint name", "https://valid-url.com",
-				LocalDateTime.of(2001, 1, 25, 13, 42, 56), 2
-		);
-		monitoredEndpoint1.setId(45L);
-		monitoredEndpoint1.setOwner(monitorUser43);
-
-		Mockito.doReturn(Optional.empty())
-			   .when(monitoredEndpointRepository)
-			   .findById(69L);
-		Mockito.doReturn(List.of(monitorUser43))
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("known_keycloak_id");
-
-		Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
-				ArgumentMatchers.<Long>any());
-
-		ResponseStatusException protoResult1 = new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"Endpoint with given Id (69) does not exist"
-		);
-		ResponseStatusException result1 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.deleteMonitoredEndpoint(69L,
-																		  request1
-				)
-		);
-		assertEquals(protoResult1.getStatus(), result1.getStatus());
-		assertEquals(protoResult1.getMessage(), result1.getMessage());
-
-		// Unknown user
-		JwtAuthenticationToken principal2 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal2).isAuthenticated();
-		Mockito.doReturn("unknown_keycloak_id").when(principal2).getName();
-		HttpServletRequest request2 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal2).when(request2).getUserPrincipal();
-
-		Mockito.doReturn(Optional.of(monitoredEndpoint1)).when(
-				monitoredEndpointRepository).findById(45L);
-		Mockito.doReturn(Collections.emptyList())
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("unknown_keycloak_id");
-
-		Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
-				ArgumentMatchers.<Long>any());
-
-		ResponseStatusException protoResult2 = new ResponseStatusException(
-				HttpStatus.NOT_FOUND,
-				"User with given Id (unknown_keycloak_id) does not exist"
-		);
-		ResponseStatusException result2 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.deleteMonitoredEndpoint(45L,
-																		  request2
-				)
-		);
-		assertEquals(protoResult2.getStatus(), result2.getStatus());
-		assertEquals(protoResult2.getMessage(), result2.getMessage());
-
-		// Non-owner
-		Mockito.doReturn(Optional.of(monitoredEndpoint1)).when(
-				monitoredEndpointRepository).findById(45L);
-		Mockito.doReturn(List.of(monitorUser44))
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("known_keycloak_id_2");
-
-		JwtAuthenticationToken principal3 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal3).isAuthenticated();
-		Mockito.doReturn("known_keycloak_id_2").when(principal3).getName();
-		HttpServletRequest request3 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal3).when(request3).getUserPrincipal();
-
-		Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
-				ArgumentMatchers.<Long>any());
-
-		ResponseStatusException protoResult3 = new ResponseStatusException(
-				HttpStatus.UNAUTHORIZED,
-				"User does not own specified endpoint"
-		);
-		ResponseStatusException result3 = assertThrows(
-				ResponseStatusException.class,
-				() -> monitoredEndpointController.deleteMonitoredEndpoint(45L,
-																		  request3
-				)
-		);
-		assertEquals(protoResult3.getStatus(), result3.getStatus());
-		assertEquals(protoResult3.getMessage(), result3.getMessage());
-	}
-
-	@Test
-	void deleteMonitoredEndpointAllRight()
-	{
-		MonitoredEndpointController monitoredEndpointController =
-                new MonitoredEndpointController(
-				monitoredEndpointService);
-
-		//Test with correct user
-		JwtAuthenticationToken principal1 = Mockito.mock(
-				JwtAuthenticationToken.class, defaultAnswer);
-		Mockito.doReturn(true).when(principal1).isAuthenticated();
-		Mockito.doReturn("known_keycloak_id").when(principal1).getName();
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
-												   defaultAnswer
-		);
-		Mockito.doReturn(principal1).when(request1).getUserPrincipal();
-
-		MonitoredEndpoint monitoredEndpoint1 = new MonitoredEndpoint(
-				"Valid endpoint name", "https://valid-url.com",
-				LocalDateTime.of(2001, 1, 25, 13, 42, 56), 2
-		);
-		monitoredEndpoint1.setId(45L);
-		monitoredEndpoint1.setLastCheckDate(
-				LocalDateTime.of(2002, 2, 26, 14, 43, 57));
-		monitoredEndpoint1.setOwner(monitorUser43);
-
-		Mockito.doReturn(Optional.of(monitoredEndpoint1)).when(
-				monitoredEndpointRepository).findById(45L);
-		Mockito.doReturn(List.of(monitorUser43))
-			   .when(monitorUserRepository)
-			   .findByAuthorizationId("known_keycloak_id");
-
-		Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
-				ArgumentMatchers.<Long>any());
-
-		MonitoredEndpointDTO resultProto1 = new MonitoredEndpointDTO(45L,
-																	 "Valid endpoint name",
-																	 "https://valid-url.com",
-																	 LocalDateTime.of(
-																			 2001,
-																			 1,
-																			 25,
-																			 13,
-																			 42,
-																			 56
-																	 ),
-																	 LocalDateTime.of(
-																			 2002,
-																			 2,
-																			 26,
-																			 14,
-																			 43,
-																			 57
-																	 ), 2, 43L
-		);
-		MonitoredEndpointDTO result1 =
-                monitoredEndpointController.deleteMonitoredEndpoint(
-				45L, request1);
-		assertEquals(resultProto1, result1);
+		private MonitoredEndpoint monitoredEndpoint53;
+
+		@BeforeEach
+		void setup()
+		{
+			monitoredEndpoint53 = new MonitoredEndpoint("Valid endpoint name",
+														"https://valid-url"
+														+ ".com",
+														LocalDateTime.of(2001,
+																		 1, 25,
+																		 13,
+																		 42,
+																		 56
+														), 2
+			);
+			monitoredEndpoint53.setId(53L);
+			monitoredEndpoint53.setLastCheckDate(
+					LocalDateTime.of(2002, 2, 26, 14, 43, 57));
+			monitoredEndpoint53.setOwner(monitorUser43);
+		}
+
+		@Test
+		void testDeleteNoKeycloakId()
+		{
+			Mockito.doReturn(null).when(request).getUserPrincipal();
+
+			ResponseStatusException expected_error =
+					new ResponseStatusException(
+							HttpStatus.BAD_REQUEST,
+							"Authorization token must be " + "provided"
+					);
+
+			// Assertions
+			ResponseStatusException error = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.deleteMonitoredEndpoint(53L,
+																	 request)
+			);
+			assertEquals(expected_error.getStatus(), error.getStatus());
+			assertEquals(expected_error.getMessage(), error.getMessage());
+		}
+
+		@Test
+		void testDeleteUnknownEndpoint()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.empty())
+				   .when(monitoredEndpointRepository)
+				   .findById(79L);
+			Mockito.doReturn(List.of(monitorUser43))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_43");
+
+			Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
+					ArgumentMatchers.<Long>any());
+
+			ResponseStatusException protoResult1 = new ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"Endpoint with given Id (79) does not exist"
+			);
+			ResponseStatusException result1 = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.deleteMonitoredEndpoint(
+							79L, request)
+			);
+			assertEquals(protoResult1.getStatus(), result1.getStatus());
+			assertEquals(protoResult1.getMessage(), result1.getMessage());
+		}
+
+		@Test
+		void testDeleteByUnknownUser()
+		{
+			Mockito.doReturn(principalUnknown).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.of(monitoredEndpoint53)).when(
+					monitoredEndpointRepository).findById(53L);
+			Mockito.doReturn(Collections.emptyList()).when(
+					monitorUserRepository).findByAuthorizationId(
+					"unknown_keycloak_id");
+
+			Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
+					ArgumentMatchers.<Long>any());
+
+			ResponseStatusException protoResult2 = new ResponseStatusException(
+					HttpStatus.NOT_FOUND,
+					"User with given Id (unknown_keycloak_id) does not exist"
+			);
+			ResponseStatusException result2 = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.deleteMonitoredEndpoint(
+							53L, request)
+			);
+			assertEquals(protoResult2.getStatus(), result2.getStatus());
+			assertEquals(protoResult2.getMessage(), result2.getMessage());
+		}
+
+		@Test
+		void testDeleteByNonOwner()
+		{
+			Mockito.doReturn(principal44).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.of(monitoredEndpoint53)).when(
+					monitoredEndpointRepository).findById(53L);
+			Mockito.doReturn(List.of(monitorUser44))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_44");
+
+			Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
+					ArgumentMatchers.<Long>any());
+
+			ResponseStatusException protoResult3 = new ResponseStatusException(
+					HttpStatus.UNAUTHORIZED,
+					"User does not own specified endpoint"
+			);
+			ResponseStatusException result3 = assertThrows(
+					ResponseStatusException.class,
+					() -> monitoredEndpointController.deleteMonitoredEndpoint(
+							53L, request)
+			);
+			assertEquals(protoResult3.getStatus(), result3.getStatus());
+			assertEquals(protoResult3.getMessage(), result3.getMessage());
+		}
+
+		@Test
+		void testDeleteTypical()
+		{
+			Mockito.doReturn(principal43).when(request).getUserPrincipal();
+
+			Mockito.doReturn(Optional.of(monitoredEndpoint53)).when(
+					monitoredEndpointRepository).findById(53L);
+			Mockito.doReturn(List.of(monitorUser43))
+				   .when(monitorUserRepository)
+				   .findByAuthorizationId("known_keycloak_id_43");
+
+			Mockito.doNothing().when(monitoredEndpointRepository).deleteById(
+					ArgumentMatchers.<Long>any());
+
+			MonitoredEndpointDTO resultProto1 = new MonitoredEndpointDTO(53L,
+																		 "Valid "
+																		 +
+																		 "endpoint"
+																		 + " name",
+																		 "https"
+																		 +
+																		 "://valid"
+																		 +
+																		 "-url"
+																		 +
+																		 ".com",
+																		 LocalDateTime.of(
+																				 2001,
+																				 1,
+																				 25,
+																				 13,
+																				 42,
+																				 56
+																		 ),
+																		 LocalDateTime.of(
+																				 2002,
+																				 2,
+																				 26,
+																				 14,
+																				 43,
+																				 57
+																		 ), 2,
+																		 43L
+			);
+			MonitoredEndpointDTO result1 =
+					monitoredEndpointController.deleteMonitoredEndpoint(
+					53L, request);
+			assertEquals(resultProto1, result1);
+		}
 	}
 }

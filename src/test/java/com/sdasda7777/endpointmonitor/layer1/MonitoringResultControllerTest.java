@@ -58,6 +58,8 @@ class MonitoringResultControllerTest
 	private MonitoringResultRepository monitoringResultRepository;
 	private MonitoringResultService monitoringResultService;
 
+	private MonitoringResultController monitoringResultController;
+
 	@BeforeEach
 	void setup()
 	{
@@ -150,34 +152,34 @@ class MonitoringResultControllerTest
 				monitoringResultRepository, monitoredEndpointService,
 				monitorUserService
 		);
+
+		monitoringResultController = new MonitoringResultController(
+				monitoringResultService);
 	}
 
 	@Test
-	void getMonitoringResultsNoKeycloakId()
+	void testNoKeycloakId()
 	{
-		MonitoringResultController monitoringResultController =
-				new MonitoringResultController(
-				monitoringResultService);
-
-		// No keycloak Id
-		HttpServletRequest request1 = Mockito.mock(HttpServletRequest.class,
+		HttpServletRequest request = Mockito.mock(HttpServletRequest.class,
 												   defaultAnswer
 		);
-		Mockito.doReturn(null).when(request1).getUserPrincipal();
+		Mockito.doReturn(null).when(request).getUserPrincipal();
 
-		ResponseStatusException protoResult1 = new ResponseStatusException(
+		ResponseStatusException expectedResult = new ResponseStatusException(
 				HttpStatus.BAD_REQUEST,
 				"Authorization token must be " + "provided"
 		);
-		ResponseStatusException result1 = assertThrows(
+
+		// Assertions
+		ResponseStatusException result = assertThrows(
 				ResponseStatusException.class,
 				() -> monitoringResultController.getMonitoringResults(69L,
 																	  null,
-																	  request1
+																	  request
 				)
 		);
-		assertEquals(protoResult1.getStatus(), result1.getStatus());
-		assertEquals(protoResult1.getMessage(), result1.getMessage());
+		assertEquals(expectedResult.getStatus(), result.getStatus());
+		assertEquals(expectedResult.getMessage(), result.getMessage());
 	}
 
 	@Nested
@@ -220,100 +222,89 @@ class MonitoringResultControllerTest
 		}
 
 		@Test
-		void unknownEndpoint()
+		void testUnknownEndpoint()
 		{
 			HttpServletRequest request = Mockito.mock(HttpServletRequest.class,
 													  defaultAnswer
 			);
 			Mockito.doReturn(principal43).when(request).getUserPrincipal();
 
-			MonitoringResultController monitoringResultController =
-					new MonitoringResultController(
-					monitoringResultService);
-
-
-			ResponseStatusException protoResult1 = new ResponseStatusException(
+			ResponseStatusException expectedResult = new ResponseStatusException(
 					HttpStatus.NOT_FOUND,
 					"Endpoint with given Id (79) does not exist"
 			);
-			ResponseStatusException result1 = assertThrows(
+
+			// Assertions
+			ResponseStatusException result = assertThrows(
 					ResponseStatusException.class,
 					() -> monitoringResultController.getMonitoringResults(79L,
 																		  null,
 																		  request
 					)
 			);
-			assertEquals(protoResult1.getStatus(), result1.getStatus());
-			assertEquals(protoResult1.getMessage(), result1.getMessage());
+			assertEquals(expectedResult.getStatus(), result.getStatus());
+			assertEquals(expectedResult.getMessage(), result.getMessage());
 		}
 
 		@Test
-		void unknownUser()
+		void testUnknownUser()
 		{
 			HttpServletRequest request = Mockito.mock(HttpServletRequest.class,
 													  defaultAnswer
 			);
 			Mockito.doReturn(principalUnknown).when(request).getUserPrincipal();
 
-			MonitoringResultController monitoringResultController =
-					new MonitoringResultController(
-					monitoringResultService);
-
-
-			ResponseStatusException protoResult2 = new ResponseStatusException(
+			ResponseStatusException expectedResult = new ResponseStatusException(
 					HttpStatus.NOT_FOUND,
 					"User with given Id (unknown_keycloak_id) does not exist"
 			);
-			ResponseStatusException result2 = assertThrows(
+
+			// Assertions
+			ResponseStatusException result = assertThrows(
 					ResponseStatusException.class,
 					() -> monitoringResultController.getMonitoringResults(53L,
 																		  null,
 																		  request
 					)
 			);
-			assertEquals(protoResult2.getStatus(), result2.getStatus());
-			assertEquals(protoResult2.getMessage(), result2.getMessage());
+			assertEquals(expectedResult.getStatus(), result.getStatus());
+			assertEquals(expectedResult.getMessage(), result.getMessage());
 		}
 
 		@Test
-		void nonOwnerUser()
+		void testNonOwnerUser()
 		{
 			HttpServletRequest request = Mockito.mock(HttpServletRequest.class,
 													  defaultAnswer
 			);
 			Mockito.doReturn(principal44).when(request).getUserPrincipal();
 
-			MonitoringResultController monitoringResultController =
-					new MonitoringResultController(
-					monitoringResultService);
-
-			ResponseStatusException protoResult3 = new ResponseStatusException(
+			ResponseStatusException expectedResult = new ResponseStatusException(
 					HttpStatus.UNAUTHORIZED,
 					"User does not own specified endpoint"
 			);
-			ResponseStatusException result3 = assertThrows(
+
+			// Assertions
+			ResponseStatusException result = assertThrows(
 					ResponseStatusException.class,
 					() -> monitoringResultController.getMonitoringResults(53L,
 																		  null,
 																		  request
 					)
 			);
-			assertEquals(protoResult3.getStatus(), result3.getStatus());
-			assertEquals(protoResult3.getMessage(), result3.getMessage());
+			assertEquals(expectedResult.getStatus(), result.getStatus());
+			assertEquals(expectedResult.getMessage(), result.getMessage());
 		}
 
 		@Test
-		void ownerNoLimit()
+		void testOwnerWithNoLimit()
 		{
 			HttpServletRequest request = Mockito.mock(HttpServletRequest.class,
 													  defaultAnswer
 			);
 			Mockito.doReturn(principal43).when(request).getUserPrincipal();
 
-			MonitoringResultController monitoringResultController =
-					new MonitoringResultController(
-					monitoringResultService);
-
+			// Assertions
 			ArrayList<MonitoringResultDTO> result = new ArrayList<>(
 					monitoringResultController.getMonitoringResults(53L, null,
 																	request
@@ -324,53 +315,32 @@ class MonitoringResultControllerTest
 		}
 
 		@Test
-		void ownerLimit1()
+		void testOwnerWithLimit1()
 		{
 			HttpServletRequest request = Mockito.mock(HttpServletRequest.class,
 													  defaultAnswer
 			);
 			Mockito.doReturn(principal43).when(request).getUserPrincipal();
 
-			MonitoringResultController monitoringResultController =
-					new MonitoringResultController(
-					monitoringResultService);
-
+			// Assertions
 			ArrayList<MonitoringResultDTO> result = new ArrayList<>(
 					monitoringResultController.getMonitoringResults(53L, 1,
 																	request
 					));
 			assertEquals(1, result.size());
 			MonitoringResultDTO result5DTO = result.get(0);
-			assertEquals(monitoringResultDTO2.getId(), result5DTO.getId());
-			assertEquals(monitoringResultDTO2.getCheckDate(),
-						 result5DTO.getCheckDate()
-			);
-			assertEquals(monitoringResultDTO2.getResultStatusCode(),
-						 result5DTO.getResultStatusCode()
-			);
-			assertEquals(monitoringResultDTO2.getResultPayload(),
-						 result5DTO.getResultPayload()
-			);
-			assertEquals(monitoringResultDTO2.getMonitoredEndpointId(),
-						 result5DTO.getMonitoredEndpointId()
-			);
-			assertEquals(monitoringResultDTO2.getMonitoredEndpointURL(),
-						 result5DTO.getMonitoredEndpointURL()
-			);
+			assertEquals(monitoringResultDTO2, result5DTO);
 		}
 
 		@Test
-		void ownerLimit200()
+		void testOwnerWithLimit200()
 		{
 			HttpServletRequest request = Mockito.mock(HttpServletRequest.class,
 													  defaultAnswer
 			);
 			Mockito.doReturn(principal43).when(request).getUserPrincipal();
 
-			MonitoringResultController monitoringResultController =
-					new MonitoringResultController(
-					monitoringResultService);
-
+			// Assertions
 			ArrayList<MonitoringResultDTO> result = new ArrayList<>(
 					monitoringResultController.getMonitoringResults(53L, 200,
 																	request

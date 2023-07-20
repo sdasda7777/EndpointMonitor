@@ -197,7 +197,7 @@ public class MonitoredEndpointController
 		catch (InvalidUserIdException e)
 		{
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, (
-					"User with given Id (%s) does "
+					"User with given authorization Id (%s) does "
 					+ "not exist").formatted(e.getMessage()));
 		}
 		catch (InsufficientDataOwnershipException e)
