@@ -2,6 +2,8 @@
 
 Endpoint Monitor is a simple backend which provides options for continuous monitoring of remote endpoints. Endpoint Monitor uses Keycloak for purposes of authentication and authorization.
 
+![example workflow](https://github.com/sdasda7777/EndpointMonitor/actions/workflows/maven.yml/badge.svg)
+
 ## Setup
 
 You should be able to run the project by running `sudo docker-compose up` in a terminal. If you want to rebuild the containers, use `--build`.
