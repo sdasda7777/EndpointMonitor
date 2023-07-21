@@ -64,6 +64,7 @@ public interface MonitoredEndpointRepository extends JpaRepository<MonitoredEndp
 	 */
 	@Query("SELECT me FROM MonitoredEndpoint me "
 		   + "WHERE me.nextCheckDate <= CURRENT_TIMESTAMP "
+		   + "AND me.monitoringInterval <> 0 "
 		   + "ORDER BY me.id ASC")
 	List<MonitoredEndpoint> getRequiringUpdate();
 
